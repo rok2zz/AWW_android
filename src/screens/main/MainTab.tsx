@@ -15,7 +15,7 @@ const MainTab = (): React.JSX.Element => {
 		<Tab.Navigator  >
             <Tab.Screen name='Home' component={ Home } options={{ headerShown: false }} />
             <Tab.Screen name='Alarm' component={ Alarm } options={{ headerShown: false }} />
-            <Tab.Screen name='ScheduleStack' component={ ScheduleStack } options={{ headerShown: false }} />
+            <Tab.Screen name='Schedule' component={ ScheduleStack } options={{ headerShown: false }} />
             <Tab.Screen name='Routine' component={ Routine } options={{ headerShown: false }} />
         </Tab.Navigator>
 	);

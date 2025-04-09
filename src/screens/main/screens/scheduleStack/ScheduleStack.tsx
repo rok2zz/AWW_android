@@ -1,7 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { useEffect } from "react"
-import Schedule from "./screens/Schedule"
 import { ScheduleStackParamList } from "../../../../types/stack"
+import ScheduleSetting from "./screens/ScheduleSetting"
+import ScheduleHome from "./screens/ScheduleHome"
 
 const Stack = createNativeStackNavigator<ScheduleStackParamList>()
 
@@ -12,7 +13,8 @@ const ScheduleStack = (): JSX.Element => {
 
 	return (
 		<Stack.Navigator>
-			<Stack.Screen name='Schedule' component={ Schedule } options={{ headerShown: false }} />
+			<Stack.Screen name='ScheduleHome' component={ ScheduleHome } options={{ headerShown: false }} />
+			<Stack.Screen name='ScheduleSetting' component={ ScheduleSetting } options={{ headerShown: false }} />
 		</Stack.Navigator>	
 	)
 }

@@ -53,9 +53,9 @@ const Home = (): React.JSX.Element => {
 					console.warn(err);
 				  }
 			}
-		  } else {
+		} else {
 			Geolocation.requestAuthorization();
-		  }
+		}
 
 		Geolocation.getCurrentPosition(
 			(position) => {

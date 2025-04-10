@@ -3,6 +3,7 @@ import { Alert, Button, Linking, PermissionsAndroid, Platform, Pressable, StyleS
 import { useApi } from '../../../hooks/useApi';
 import Geolocation from '@react-native-community/geolocation';
 import notifee, { AndroidImportance, IntervalTrigger, TimestampTrigger, TimeUnit, TriggerType } from '@notifee/react-native';
+import Tts from 'react-native-tts';
 
 interface Location {
 	lattitude: number,
@@ -21,6 +22,14 @@ const Home = (): React.JSX.Element => {
 	useEffect(() => {
 		console.log(location)
 	}, [location])
+
+	const testTTS = () => {
+		// Tts.setDefaultLanguage('ko-KR');
+		Tts.setDefaultVoice('ko-kr-x-kob-local');
+
+		Tts.speak('안녕하세요 티티에스입니다');
+	}
+
 
 	const getGeolocation = async () => {
 		if (Platform.OS === 'android') {

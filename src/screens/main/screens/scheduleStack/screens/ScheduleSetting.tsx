@@ -53,12 +53,13 @@ const ScheduleSetting = (): JSX.Element => {
     const navigation = useNavigation<ScheduleNavigationProp>();
     const [title, setTitle] = useState<string>('');
     const [allday, setAllday] = useState<boolean>(false);
-    const titleRef = useRef<TextInput>(null)
-    const [isFocused, setIsFocused] = useState<Focus>({ ref: titleRef, isFocused: false })
+    const [dDay, setDDay] = useState<boolean>(false);
+    const titleRef = useRef<TextInput>(null);
+    const [isFocused, setIsFocused] = useState<Focus>({ ref: titleRef, isFocused: false });
 
     useEffect(() => {
         console.log(allday)
-    }, [allday])
+    }, [allday]);
 
     // 선택한 입력칸 포커스
     const handleFocus = (ref: React.RefObject<TextInput>) => {
@@ -66,7 +67,7 @@ const ScheduleSetting = (): JSX.Element => {
             ref: ref,
             isFocused: true
         })
-    }
+    };
 
     // 포커스 해제
     const handleBlur = (ref: React.RefObject<TextInput>) => {
@@ -74,7 +75,7 @@ const ScheduleSetting = (): JSX.Element => {
             ref: ref,
             isFocused: false
         })
-    }
+    };
 
     // header
     const Header = (): JSX.Element => {
@@ -101,7 +102,7 @@ const ScheduleSetting = (): JSX.Element => {
                         onChangeText={(title: string): void => setTitle(title) } onSubmitEditing={ () => handleBlur(titleRef) } />
                 </View>
 
-                <View style={ styles.blockContainer }>
+                <View style={[ styles.blockContainer, { paddingVertical: 0 }]}>
                     <View style={ styles.dateContainer }>
                         <View style={[ styles.rowContainer, { flex: 1 }]}>
                             <Text style={[ styles.boldText, { lineHeight: 28 }]}>하루종일</Text>
@@ -141,7 +142,7 @@ const ScheduleSetting = (): JSX.Element => {
                         <View style={[ styles.rowContainer, { flex: 1 }]}>
                             <Text style={[ styles.boldText, { lineHeight: 28 }]}>D-day 날씨 알림</Text>
                         </View>
-                        <Toggle value={ allday } setValue={ setAllday }/>
+                        <Toggle value={ dDay } setValue={ setDDay }/>
                     </View>
                 </View>
             </View>

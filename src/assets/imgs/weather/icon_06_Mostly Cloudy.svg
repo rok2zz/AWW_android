@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_레이어_1" data-name="레이어_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 150 150">
+  <!-- Generator: Adobe Illustrator 29.4.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 152)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #fff;
+      }
+
+      .st1 {
+        fill: #ffc800;
+      }
+
+      .st2 {
+        fill: #ff9600;
+      }
+    </style>
+  </defs>
+  <g>
+    <circle class="st1" cx="90" cy="60" r="33.33"/>
+    <rect class="st2" x="86.67" y="10" width="6.67" height="13.33" rx="3.33" ry="3.33"/>
+    <rect class="st2" x="86.67" y="96.67" width="6.67" height="13.33" rx="3.33" ry="3.33" transform="translate(180 206.67) rotate(-180)"/>
+    <rect class="st2" x="130" y="53.33" width="6.67" height="13.33" rx="3.33" ry="3.33" transform="translate(193.33 -73.33) rotate(90)"/>
+    <rect class="st2" x="43.33" y="53.33" width="6.67" height="13.33" rx="3.33" ry="3.33" transform="translate(-13.33 106.67) rotate(-90)"/>
+    <rect class="st2" x="56.03" y="22.69" width="6.67" height="13.33" rx="3.33" ry="3.33" transform="translate(-3.37 50.57) rotate(-45)"/>
+    <rect class="st2" x="117.31" y="83.97" width="6.67" height="13.33" rx="3.33" ry="3.33" transform="translate(270.04 69.43) rotate(135)"/>
+    <rect class="st2" x="117.31" y="22.69" width="6.67" height="13.33" rx="3.33" ry="3.33" transform="translate(56.09 -76.71) rotate(45)"/>
+    <rect class="st2" x="56.03" y="83.97" width="6.67" height="13.33" rx="3.33" ry="3.33" transform="translate(37.24 196.71) rotate(-135)"/>
+  </g>
+  <path class="st0" d="M121,84h0c-3.33,0-6.54.59-9.51,1.68-4.44-14.85-18.2-25.68-34.49-25.68-11.41,0-21.57,5.31-28.17,13.59-2.41-1.03-5.05-1.59-7.83-1.59-11.05,0-20,8.95-20,20,0,.1,0,.19,0,.28-11.29,1.77-20.01,11.6-20.01,23.37h0c0,13.45,10.9,24.35,24.35,24.35h95.65c15.46,0,28-12.54,28-28h0c0-15.46-12.54-28-28-28Z"/>
+</svg>

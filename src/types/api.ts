@@ -31,6 +31,7 @@ export interface Payload {
     msg?: string,
 }
 
+// weather
 export interface DailyForecasts {
     Date: string,
     Temparature: string

@@ -17,10 +17,10 @@ interface Props {
 }
 
 const TabHeader = ({ title, type, isFocused, before }: Props ): JSX.Element => {
-    const navigation = useNavigation<RootStackNavigationProp>()
+    const navigation = useNavigation<RootStackNavigationProp>();
 
-    const [backgroundColor, setBackgroundColor] = useState<string>('#ffffff')
-    const [fontColor, setFontColor] = useState<string>('#121619')
+    const [backgroundColor, setBackgroundColor] = useState<string>('#ffffff');
+    const [fontColor, setFontColor] = useState<string>('#121619');
 
     useEffect(() => {
         switch (type) {
@@ -51,15 +51,15 @@ const TabHeader = ({ title, type, isFocused, before }: Props ): JSX.Element => {
         if (Platform.OS === 'android') {
             StatusBar.setBackgroundColor(backgroundColor)   
         }
-    }, [isFocused])
+    }, [isFocused]);
 
     const onPress = () => {
         if (before === '') {
-            navigation.goBack()
+            navigation.goBack();
             return
         }
-        navigation.navigate('MainTab' as any, { screen: before })
-    }
+        navigation.navigate('MainTab' as any, { screen: before });
+    };
 
     return (
         <SafeAreaView style={{ backgroundColor: backgroundColor }} edges={['top']}>

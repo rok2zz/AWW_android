@@ -3,8 +3,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { RootStackParamList } from './types/stack';
 import notifee, { EventType } from '@notifee/react-native';
 import RootStack from './screens/RootStack';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import rootReducer from './slices';
 
-// const store = configureStore({ reducer: rootReducer })
+const store = configureStore({ reducer: rootReducer })
 
 function App(): React.JSX.Element {
 	const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null)
@@ -16,11 +19,11 @@ function App(): React.JSX.Element {
 	}, []);
 
 	return (
-		// <Provider store={ store }>
+		<Provider store={ store }>
 			<NavigationContainer ref={ navigationRef }>
 				<RootStack />
 			</NavigationContainer>
-		// </Provider>
+		</Provider>
 	);
 }
 

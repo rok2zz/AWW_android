@@ -9,6 +9,8 @@ import { Shadow } from "react-native-shadow-2"
 import Alarm from "../../assets/imgs/tabBar/icon_alarm.svg"
 import Schedule from "../../assets/imgs/tabBar/icon_schedule.svg"
 import Routine from "../../assets/imgs/tabBar/icon_routine.svg"
+import Setting from "../../assets/imgs/tabBar/icon_setting.svg"
+import Search from "../../assets/imgs/tabBar/icon_search.svg"
 
 const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JSX.Element => {    
     const rootNavigation = useNavigation<RootStackNavigationProp>()
@@ -56,33 +58,53 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
                                     { index === 0 && 
                                         <>
                                             { isFocused ? (
-                                                <Alarm style={{ marginBottom: 4 }} width={ 32 } height={ 32 } /> 
+                                                <Search style={ styles.icon } width={ 30 } height={ 30 } /> 
                                                 ) : (
-                                                <Alarm style={{ marginBottom: 4 }} width={ 32 } height={ 32 } /> 
+                                                <Search style={ styles.icon } width={ 30 } height={ 30 } /> 
                                             )}
                                         </>
                                     }   
                                     { index === 1 && 
                                         <>
                                             { isFocused ? (
-                                                <Schedule style={{ marginBottom: 4 }} width={ 32 } height={ 32 } /> 
+                                                <Alarm style={ styles.icon } width={ 30 } height={ 30 } /> 
                                             ) : (
-                                                <Schedule style={{ marginBottom: 4 }} width={ 32 } height={ 32 } /> 
+                                                <Alarm style={ styles.icon } width={ 30 } height={ 30 } /> 
                                             )}
                                         </>
                                     }    
-                                        { index === 2 && 
+                                    { index === 2 && 
                                         <>
                                             { isFocused ? (
-                                                <Routine style={{ marginBottom: 4 }} width={ 32 } height={ 32 } /> 
+                                                <Schedule style={ styles.icon } width={ 30 } height={ 30 } /> 
                                             ) : (
-                                                <Routine style={{ marginBottom: 4 }} width={ 32 } height={ 32 } /> 
+                                                <Schedule style={ styles.icon } width={ 30 } height={ 30 } /> 
                                             )} 
                                         </>
                                     }   
-                                    { index === 0 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>알람</Text> }
-                                    { index === 1 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>일정</Text> }
-                                    { index === 2 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>루틴</Text> }
+                                    { index === 3 && 
+                                        <>
+                                            { isFocused ? (
+                                                <Routine style={ styles.icon } width={ 30 } height={ 30 } /> 
+                                            ) : (
+                                                <Routine style={ styles.icon } width={ 30 } height={ 30 } /> 
+                                            )} 
+                                        </>
+                                    }   
+                                    { index === 4 && 
+                                        <>
+                                            { isFocused ? (
+                                                <Setting style={ styles.icon } width={ 30 } height={ 30 } /> 
+                                            ) : (
+                                                <Setting style={ styles.icon } width={ 30 } height={ 30 } /> 
+                                            )} 
+                                        </>
+                                    }   
+                                    { index === 0 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>검색</Text> }
+                                    { index === 1 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>알람</Text> }
+                                    { index === 2 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>일정</Text> }
+                                    { index === 3 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>루틴</Text> }
+                                    { index === 4 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>설정</Text> }
                                 </View>
                             </Pressable>
                         </Fragment>
@@ -106,7 +128,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
 
         paddingVertical: 20,
-        paddingHorizontal: 70,
+        paddingHorizontal: 50,
 
         backgroundColor: '#eeeeee',
     },
@@ -119,6 +141,9 @@ const styles = StyleSheet.create({
         fontFamily: 'Pretendard-Regular',
 
         color: '#999999'
+    },
+    icon: {
+        marginBottom: 7
     }
 })
 

@@ -14,10 +14,11 @@ export type RootStackNavigationProp = NativeStackNavigationProp<RootStackParamLi
 
 // MainTab
 export type MainTabParamList = {
-	Home: undefined,
+	Search: undefined,
 	Alarm: undefined,
 	Schedule: undefined,
-	Routine: undefined
+	Routine: undefined,
+	Setting: undefined
 }
 
 export type MainTabScreenName = keyof MainTabParamList
@@ -26,7 +27,7 @@ export type MainTabNavigationProp = NativeStackNavigationProp<MainTabParamList>
 export type ScheduleStackParamList = {
 	ScheduleHome: undefined,
 	ScheduleDetail: undefined,
-	ScheduleList: undefined
+	ScheduleIndex: undefined
 }
 
 export type ScheduleScreenName = keyof ScheduleStackParamList

@@ -1,0 +1,165 @@
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import TabHeader from "../../../../../components/header/TabHeader";
+import { useState } from "react";
+import { ScheduleList } from "../../../../../slices/schedule";
+
+// svg
+import Location from "../../../../../assets/imgs/schedule/icon_location_mark.svg"
+import Sunny from "../../../../../assets/imgs/weather/icon_sunny.svg"
+
+const ScheduleIndex = (): JSX.Element => {
+    const [type, setType] = useState<number>(0); // 0: 현재 일정, 1: 종료된 일정
+    const dateType: number = 0 // 0: 12시간제, 1: 24시간제
+    const [scheduleList, setScheduleList] = useState<ScheduleList[]>([
+        { 
+            id: 0,
+            title: 'todo 1',
+            start: '2023-10-01T00:30:00.000Z',
+            end: '2023-10-01T11:02:00.000Z',
+
+        },
+        {
+            id: 1,
+            title: 'todo 2',
+            start: '2023-10-01T00:00:00.000Z',
+            end: '2023-10-02T10:00:00.000Z',
+        
+            location: '압구정동', 
+            temperature: 15,
+        }
+    ]);
+
+    const getTime = (item: ScheduleList): string => {
+        const start = new Date(item.start);
+        const startYear = start.getFullYear();
+        const startMonth = start.getMonth() + 1;
+        const startDate = start.getDate(); 
+
+        const formatTime = (date: Date) => {
+            let hour = date.getHours();
+            let minute = date.getMinutes();
+            let ampm = '오전';
+
+            if (dateType === 0) {
+                ampm = hour >= 12 ? '오후' : '오전';
+                hour = hour > 12 ? hour - 12 : 0 + hour;
+
+                return ampm + ' ' + hour + ':' + (minute > 10 ? minute : '0' + minute);
+            }
+
+            return hour + ':' + (minute > 10 ? minute : '0' + minute);
+        }
+
+        if (item.end) {
+            const end = new Date(item.end);
+            const endYear = end.getFullYear();
+            const endMonth = end.getMonth() + 1;
+            const endDate = end.getDate();
+
+            if (startYear === endYear && startMonth === endMonth && startDate === endDate) {
+                return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start) + ' ~ ' + formatTime(end);
+            }
+
+            return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start) + ' ~ ' + endYear + '.' + endMonth + '.' + endDate + ' ' + formatTime(end);
+        }
+
+        return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start);
+    }
+
+    return (
+        <>
+            <TabHeader title="일정 목록" type={ 0 } isFocused={ false } before={""} />
+            { type === 0 ? (
+                <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
+                    { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: ScheduleList, index: number ) => {
+
+                        if (item.status === 0) {
+                            return (
+                                <Pressable style={ styles.container } key={ index }>
+                                    <Text style={ styles.boldText }>{ item.title }</Text>
+                                    <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
+                                    { item.location && (
+                                        <View style={ styles.rowContainer }>
+                                            <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                                            <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+    
+                                            { item.temperature !== undefined && (
+                                                <View style={ styles.rowContainer }>
+                                                    <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
+                                                    <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
+                                </Pressable>
+                            )
+                        }
+                    })}
+                </ScrollView>
+            ) : (
+                <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
+                    { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: ScheduleList, index: number ) => {
+                        return (
+                            <Pressable style={ styles.container } key={ index }>
+                                <Text style={ styles.boldText }>{ item.title }</Text>
+                                <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
+                                { item.location && (
+                                    <View style={ styles.rowContainer }>
+                                        <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                                        <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+
+                                        { item.temperature !== undefined && (
+                                            <View style={ styles.rowContainer }>
+                                                <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
+                                                <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                )}
+                            </Pressable>
+                        )
+                    }) }
+                </ScrollView>
+            )}
+            
+        </>
+
+    )
+}
+
+const styles = StyleSheet.create({
+    wrapper: {
+        
+    },
+    container: {
+        padding: 20,
+        marginTop: 20,
+        marginHorizontal: 20,
+
+        borderRadius: 10,
+        backgroundColor: '#ffffff'
+    },
+    boldText: {
+		includeFontPadding: false,
+        fontSize: 24,
+        fontFamily: 'NotoSansKR-Bold',
+
+        marginBottom: 16,
+
+        color: '#333333'
+    },
+    regularText: {
+		includeFontPadding: false,
+        fontSize: 16,
+        fontFamily: 'NotoSansKR-Regular',
+
+        color: '#666666'
+    },
+    rowContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+})
+
+export default ScheduleIndex;

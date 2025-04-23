@@ -198,14 +198,14 @@ const styles = StyleSheet.create({
     boldText: {
         includeFontPadding: false,
         fontSize: 16,
-        fontFamily: 'Pretendard-Bold',
+        fontFamily: 'NotoSansKR-Bold',
 
         color: '#666666'
     },
     regularText: {
         includeFontPadding: false,
         fontSize: 20,
-        fontFamily: 'Pretendard-Regular',
+        fontFamily: 'NotoSansKR-Regular',
 
         color: '#666666'
     },
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
         height: 60,
 
         fontSize: 24,
-        fontFamily: 'Pretendard-Bold',
+        fontFamily: 'NotoSansKR-Bold',
 
         color: '#333333'
     },
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
         height: 60,
 
         fontSize: 20,
-        fontFamily: 'Pretendard-Regular',
+        fontFamily: 'NotoSansKR-Regular',
 
         color: '#666666'
     },

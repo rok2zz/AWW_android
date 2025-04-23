@@ -201,21 +201,21 @@ const styles = StyleSheet.create({
 	ExtraBoldText: {
 		includeFontPadding: false,
         fontSize: 60,
-        fontFamily: 'Pretendard-ExtraBold',
+        fontFamily: 'NotoSansKR-ExtraBold',
 
         color: '#ffffff'
 	},
 	boldText: {
 		includeFontPadding: false,
         fontSize: 20,
-        fontFamily: 'Pretendard-Bold',
+        fontFamily: 'NotoSansKR-Bold',
 
         color: '#ffffff'
 	},
 	regularText: {
 		includeFontPadding: false,
         fontSize: 20,
-        fontFamily: 'Pretendard-Regular',
+        fontFamily: 'NotoSansKR-Regular',
 
         color: '#ffffff'
 	},

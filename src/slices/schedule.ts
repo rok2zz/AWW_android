@@ -1,19 +1,46 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 
-interface WeatherState {
-    key?: string
+export interface ScheduleList {
+    id: number,
+    title: string,
+    start: string,
+    end?: string,
+    
+    status?: number,
+
+    location?: string, 
+    temperature?: number,
+    todo?: Todo[]
 }
 
-const initialState: WeatherState = {
-    key: ''
+export interface Todo {
+    id: number,
+    title: string,
+    start: string,
+    end: string,
+
+    location?: string,
+    temperature?: number
 }
 
-const weatherSlice = createSlice ({
-    name: 'weather',
+interface ScheduleState {
+    mainScheduleList?: ScheduleList[],
+    scheduleList?: ScheduleList[],
+}
+
+const initialState: ScheduleState = {
+    mainScheduleList: []
+}
+
+const scheduleSlice = createSlice ({
+    name: 'schedule',
     initialState,
     reducers: {
-        saveFavoriteWeather(state, action: PayloadAction<any>) {
-            state.key = action.payload
+        saveMainScheduleList(state, action: PayloadAction<ScheduleList[]>) {
+            state.mainScheduleList = action.payload
+        },
+        saveScheduleList(state, action: PayloadAction<ScheduleList[]>) {
+            state.scheduleList = action.payload
         },
         clearWeather() {
             return initialState
@@ -21,5 +48,5 @@ const weatherSlice = createSlice ({
     }
 })
 
-export default weatherSlice.reducer
-export const { saveFavoriteWeather, clearWeather } = weatherSlice.actions
+export default scheduleSlice.reducer
+export const { saveMainScheduleList, saveScheduleList, clearWeather } = scheduleSlice.actions

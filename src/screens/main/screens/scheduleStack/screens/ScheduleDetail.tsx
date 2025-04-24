@@ -1,15 +1,15 @@
 import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { ScheduleNavigationProp } from "../../../../../types/stack";
+import { RouteProp, useNavigation } from "@react-navigation/native";
+import { ScheduleNavigationProp, ScheduleStackParamList } from "../../../../../types/stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useRef, useState } from "react";
 import { Focus } from "../../../../../types/screen";
+import TabHeader from "../../../../../components/header/TabHeader";
+import { ScheduleList } from "../../../../../slices/schedule";
 
-//svg
-import LeftArrow from "../../../../../assets/imgs/common/chevron_left.svg"
-import Start from "../../../../../assets/imgs/schedule/icon_date_start.svg"
-import End from "../../../../../assets/imgs/schedule/icon_date_end.svg"
-import EventAdd from "../../../../../assets/imgs/schedule/icon_event_add.svg"
+// svg
+import End from "../../../../../assets/imgs/schedule/icon_schedule_end.svg" 
+import Delete from "../../../../../assets/imgs/schedule/icon_schedule_delete.svg"
 
 interface ToggleProps {
     value: boolean,
@@ -22,8 +22,8 @@ export interface ScheduleEvent {
     endTime: Date,
 }
 
-export interface Schedule {
-    
+interface Props {
+    route: RouteProp<ScheduleStackParamList, 'ScheduleDetail'>
 }
 
 // list with toggle component
@@ -60,19 +60,32 @@ const Toggle = ({ value, setValue }: ToggleProps): JSX.Element => {
     )
 }
 
-const ScheduleDetail = (): JSX.Element => {  
+const ScheduleDetail = ({ route }: Props): JSX.Element => {  
     const navigation = useNavigation<ScheduleNavigationProp>();
     const [type, setType] = useState<number>(0); // 0: 조회하기 1: 수정하기
-    const [title, setTitle] = useState<string>('');
+    const dateType: number = 0 // 0: 12시간제, 1: 24시간제
+    const [schedule, setSchedule] = useState<ScheduleList>(
+        { 
+            id: 0,
+            title: 'todo 1',
+            start: '2023-10-01T00:30:00.000Z',
+            end: '2023-10-01T11:02:00.000Z',
+
+            status: 1,
+            todo: [{
+                id: 0,
+                title: '할일 1',
+                start: '2023-10-01T00:30:00.000Z',
+                end: '2023-10-01T05:30:00.000Z',
+
+                location: '신사동',
+                temperature: 12
+            }]
+        }
+    );    
     const [scheduleEvent, setScheduleEvent] = useState<ScheduleEvent[]>()
-    const [allday, setAllday] = useState<boolean>(false);
-    const [dDay, setDDay] = useState<boolean>(false);
     const titleRef = useRef<TextInput>(null);
     const [isFocused, setIsFocused] = useState<Focus>({ ref: titleRef, isFocused: false });
-
-    useEffect(() => {
-        console.log(title);
-    }, [title]);
 
     // 선택한 입력칸 포커스
     const handleFocus = (ref: React.RefObject<TextInput>) => {
@@ -90,90 +103,98 @@ const ScheduleDetail = (): JSX.Element => {
         });
     };
 
-    // header
-    const Header = (): JSX.Element => {
-        return (
-            <SafeAreaView style={ styles.header } edges={['top']}>
-                <Pressable style={ styles.arrow } onPress={ () => navigation.goBack() }>
-                    <LeftArrow /> 
-                </Pressable>
-                <Pressable style={ styles.registerBtn } onPress={ () => { }}>
-                    <Text style={ styles.regularText }>일정 등록</Text>
-                </Pressable>
-            </SafeAreaView>
-        );
+    const getTime = (item: ScheduleList): string => {
+        const start = new Date(item.start);
+        const startYear = start.getFullYear();
+        const startMonth = start.getMonth() + 1;
+        const startDate = start.getDate(); 
+
+        const formatTime = (date: Date) => {
+            let hour = date.getHours();
+            let minute = date.getMinutes();
+            let ampm = '오전';
+
+            if (dateType === 0) {
+                ampm = hour >= 12 ? '오후' : '오전';
+                hour = hour > 12 ? hour - 12 : 0 + hour;
+
+                return ampm + ' ' + hour + ':' + (minute > 10 ? minute : '0' + minute);
+            }
+
+            return hour + ':' + (minute > 10 ? minute : '0' + minute);
+        }
+
+        if (item.end) {
+            const end = new Date(item.end);
+            const endYear = end.getFullYear();
+            const endMonth = end.getMonth() + 1;
+            const endDate = end.getDate();
+
+            if (startYear === endYear && startMonth === endMonth && startDate === endDate) {
+                return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start) + ' ~ ' + formatTime(end);
+            }
+
+            return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start) + ' ~ ' + endYear + '.' + endMonth + '.' + endDate + ' ' + formatTime(end);
+        }
+
+        return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start);
+    }
+
+    const getStartTime = () => {
+        if (schedule.start) {
+            const start = new Date(schedule.start);
+            return start.getFullYear() + '.' + (start.getMonth() + 1) + '.' + start.getDate()
+        }
+    }
+
+    // delete schedule
+    const deleteSchedule = () => {
+        setSchedule(prev => ({ ...prev, status: -1 }))    
     };
 
     return (
-        <View style={ styles.wrapper }>
-            <Header />
-            <ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
-                <View style={[ styles.blockContainer, { paddingVertical: 0 }]}>
-                    {/* title */}
-                    <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
-                        <TextInput style={[ styles.title, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
-                            placeholder="일정 제목" placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
-                            onFocus={ () => handleFocus(titleRef) } onBlur={ () => handleBlur(titleRef)} value={ title } keyboardType="default" 
-                            onChangeText={(title: string): void => setTitle(title) } onSubmitEditing={ () => handleBlur(titleRef) } />
+        <>
+            <TabHeader title="일정 상세보기" type={ 0 } isFocused={ false } before={""} />
+            <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
+                <View style={ styles.container }>
+                    <View style={[ styles.rowContainer, { marginBottom: 26 }]}>
+                        <Text style={[ styles.boldText, { flex: 1 }]}>{ schedule.title }</Text>
+                        { type === 0 && 
+                            <View style={ styles.modifyBtn }>
+                                <Text style={[ styles.boldText, { fontSize: 16, color: '#ffffff' }]}>수정하기</Text>
+                            </View>
+                        }
                     </View>
-                    
-                    {/* <View style={ styles.dateContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            <Text style={[ styles.boldText, { lineHeight: 28 }]}>하루종일</Text>
-                        </View>
-                        <Toggle value={ allday } setValue={ setAllday }/>
-                    </View> */}
+                    <Text style={[ styles.regularText, { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getStartTime() }</Text>
+                    {/* { location && (
+                        <View style={ styles.rowContainer }>
+                            <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                            <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
 
-                    <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
-                        <TextInput style={[ styles.eventTitle, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
-                            placeholder="할일 제목" placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
-                            onFocus={ () => handleFocus(titleRef) } onBlur={ () => handleBlur(titleRef)} value={ title } keyboardType="default" 
-                            onChangeText={(title: string): void => setTitle(title) } onSubmitEditing={ () => handleBlur(titleRef) } />
-                    </View>
-
-                    <View style={ styles.dateContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            {/* <Start style={ styles.icon } /> */}
-                            <Text style={ styles.regularText }>시작</Text>
+                            { item.temperature !== undefined && (
+                                <View style={ styles.rowContainer }>
+                                    <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
+                                    <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
+                                </View>
+                            )}
                         </View>
-                        <View>
-                            <Text></Text>
-                        </View>
-                    </View>
-                    <View style={ styles.dateContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            {/* <End style={ styles.icon } /> */}
-                            <Text style={ styles.regularText }>종료</Text>
-                        </View>
-                    </View>
-
-                    {/* Event add button */}
-                    <Pressable style={[ styles.button, { padding: 15 }]} onPress={ () => {} }>
-                        <View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
-                            <EventAdd style={{ marginRight: 10 }} />
-                            <Text style={[ styles.regularText, { color: '#999999', opacity: 0.5 }]}>할일 추가하기</Text>
-                        </View>
-                    </Pressable>
+                    )} */}
                 </View>
 
-                {/* <View style={ styles.blockContainer}> 
-                    <View style={ styles.rowContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            <Text style={[ styles.boldText, { lineHeight: 28 }]}>저장 캘린더</Text>
-                        </View>
-                    </View>
-                </View> */}
+                {/* schedule end */}
+                { schedule.status === 1 && 
+                    <Pressable style={ styles.button } onPress={ () => setSchedule(prev => ({...prev, status: 0 }))}>
+                        <End style={{ marginRight: 7 }} />
+                        <Text style={[ styles.regularText, { fontSize: 20, color: '#ef4f4f'}]}>일정 종료하기</Text>
+                    </Pressable>
+                }
 
-                {/* <View style={ styles.blockContainer}> 
-                    <View style={ styles.rowContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            <Text style={[ styles.boldText, { lineHeight: 28 }]}>D-day 날씨 알림</Text>
-                        </View>
-                        <Toggle value={ dDay } setValue={ setDDay }/>
-                    </View>
-                </View> */}
+                <Pressable style={ styles.button } onPress={ deleteSchedule }>
+                    <Delete style={{ marginRight: 7 }}  />
+                    <Text style={[ styles.regularText, { fontSize: 20, color: '#ef4f4f'}]}>일정 삭제하기</Text>
+                </Pressable>
             </ScrollView>
-        </View>
+        </>
     );
 }
 
@@ -197,28 +218,37 @@ const styles = StyleSheet.create({
     },
     boldText: {
         includeFontPadding: false,
-        fontSize: 16,
+        fontSize: 24,
         fontFamily: 'NotoSansKR-Bold',
 
-        color: '#666666'
+        color: '#000000'
     },
     regularText: {
         includeFontPadding: false,
-        fontSize: 20,
+        fontSize: 16,
         fontFamily: 'NotoSansKR-Regular',
 
         color: '#666666'
     },
     container: {
-        flex: 1,
+        
+        padding: 20,
+        marginTop: 20,
+        marginHorizontal: 20,
 
-        paddingHorizontal: 20,
-
-        backgroundColor: '#f5f5f5'
+        borderRadius: 10,
+        backgroundColor: '#ffffff'
     },
     rowContainer: {
         flexDirection: 'row',
         alignItems: 'center'
+    },
+    modifyBtn: {
+        paddingVertical: 7,
+        paddingHorizontal: 11,
+
+        borderRadius: 10,
+        backgroundColor: '#468ce6'
     },
     title: {
         flex: 1,
@@ -273,12 +303,16 @@ const styles = StyleSheet.create({
         marginRight: 5
     },
     button: {
-		padding: 20,
-		marginVertical: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+
+		padding: 15,
+        marginHorizontal: 20,
+        marginTop: 20,
 
 		borderRadius: 10,
-
-		backgroundColor: '#f5f5f5',
-	},
+		backgroundColor: '#ffffff',
+	}
 })
 export default ScheduleDetail;

@@ -29,7 +29,12 @@ interface ScheduleState {
 }
 
 const initialState: ScheduleState = {
-    mainScheduleList: []
+    mainScheduleList: [{
+        id: 0,
+        title: '',
+        start: '',
+        end: '',
+    }]
 }
 
 const scheduleSlice = createSlice ({

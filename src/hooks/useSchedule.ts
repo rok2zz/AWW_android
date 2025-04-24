@@ -9,7 +9,8 @@ import { useMemo } from "react";
 
 interface ScheduleHook {
     getMainScheduleList: (userId: string) => Promise<Payload>,
-    getApi2: (lattitude: number, longitude: number) => Promise<Payload>,
+    createSchedule: (schedule: ScheduleList) => Promise<Payload>,
+    getSchedule: (id: number) => Promise<Payload>,
 }
 
 export const useScheduleActions = () => {
@@ -18,7 +19,7 @@ export const useScheduleActions = () => {
     return useMemo(() => bindActionCreators({ saveMainScheduleList }, dispatch), [ dispatch ]) 
 }
 
-export const useMainScheduleList = (): ScheduleList[] => {
+export const useMainScheduleList = (): ScheduleList[] | undefined => {
     return useSelector((state: RootState) => state.schedule.mainScheduleList)
 }
 
@@ -27,7 +28,7 @@ export const useSchedule = (): ScheduleHook => {
 
     // get ScheduleList
     const getMainScheduleList = async (userId: string): Promise<Payload> => {
-        const { saveMainScheduleList } = useSchedule()
+        const { saveMainScheduleList } = useScheduleActions()
         
         try {
             const res: any = await axios.post(`http://192.168.1.7:5000/api/weather/getMainScheduleList?userId=${userId}`)
@@ -63,12 +64,11 @@ export const useSchedule = (): ScheduleHook => {
     }   
     
 
-    // get server info
-    const getApi2 = async (lattitude: number, longitude: number): Promise<Payload> => {
+    // create Schedule
+    const createSchedule = async (schedule: ScheduleList): Promise<Payload> => {
         try {
             const res: any = await axios.get(`http://192.168.1.7:5000/api/weather/getForecasts?lat=37.715133&lon=126.734086`)
             
-            console.log(res.data.daily)
 
             const payload: Payload = {
                 code: 1000
@@ -87,7 +87,30 @@ export const useSchedule = (): ScheduleHook => {
         return payload
     }   
 
-    return { getMainScheduleList, getApi2 }
+    // get schedule
+    const getSchedule = async (id: number): Promise<Payload> => {
+        try {
+            const res: any = await axios.get(`http://192.168.1.7:5000/api/weather/getSchedule?scheduleId=${id}`)
+            
+
+            const payload: Payload = {
+                code: 1000
+            }
+
+            return payload
+        } catch (error: any) {
+            errorHandler(error)
+        }
+
+        const payload: Payload = {
+            code: -1,
+            msg: '서버에 연결할 수 없습니다.'
+        }
+
+        return payload 
+    }
+
+    return { getMainScheduleList, createSchedule, getSchedule }
 }
 
 const errorHandler = (error: any): void => {

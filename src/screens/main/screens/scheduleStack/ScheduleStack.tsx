@@ -4,6 +4,7 @@ import { ScheduleStackParamList } from "../../../../types/stack"
 import ScheduleDetail from "./screens/ScheduleDetail"
 import ScheduleHome from "./screens/ScheduleHome"
 import ScheduleIndex from "./screens/ScheduleIndex"
+import ScheduleCreate from "./screens/ScheduleCreate"
 
 const Stack = createNativeStackNavigator<ScheduleStackParamList>()
 
@@ -11,9 +12,10 @@ const ScheduleStack = (): JSX.Element => {
 
 	return (
 		<Stack.Navigator>
-			<Stack.Screen name='ScheduleIndex' component={ ScheduleIndex } options={{ headerShown: false }} />
 			<Stack.Screen name='ScheduleHome' component={ ScheduleHome } options={{ headerShown: false }} />
 			<Stack.Screen name='ScheduleDetail' component={ ScheduleDetail } options={{ headerShown: false }} />
+			<Stack.Screen name='ScheduleCreate' component={ ScheduleCreate } options={{ headerShown: false }} />
+			<Stack.Screen name='ScheduleIndex' component={ ScheduleIndex } options={{ headerShown: false }} />
 		</Stack.Navigator>	
 	)
 }

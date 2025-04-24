@@ -26,7 +26,10 @@ export type MainTabNavigationProp = NativeStackNavigationProp<MainTabParamList>
 
 export type ScheduleStackParamList = {
 	ScheduleHome: undefined,
-	ScheduleDetail: undefined,
+	ScheduleCreate: undefined,
+	ScheduleDetail: {
+		id: number
+	},
 	ScheduleIndex: undefined
 }
 

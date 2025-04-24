@@ -155,7 +155,7 @@ const ScheduleHome = (): React.JSX.Element => {
 				</View> */}
 
 				{/* schedule button */}
-				<Pressable style={[ styles.contents, { padding: 15 }]} onPress={ () => navigation.navigate('ScheduleDetail') }>
+				<Pressable style={[ styles.contents, { padding: 15 }]} onPress={ () => navigation.navigate('ScheduleCreate') }>
 					<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
 						<ScheduleAdd style={{ marginRight: 10 }} />
 						<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>

@@ -24,10 +24,10 @@ const TopTabBar = ({ type, typeChange, tab1, tab2 }: Props): JSX.Element => {
         <View style={ styles.wrapper }>
             <View style={ styles.container }>
                 <Pressable style={ styles.button } onPress={ () => typeChange(0) }>
-                    <Text style={ type === 0 ? styles.selectedText : styles.text }>{ tab1 }</Text>
+                    <Text style={ type === 0 ? styles.boldText : styles.regularText }>{ tab1 }</Text>
                 </Pressable>
                 <Pressable style={ styles.button } onPress={ () => typeChange(1) }>
-                    <Text style={ type === 1 ? styles.selectedText : styles.text }>{ tab2 }</Text>
+                    <Text style={ type === 1 ? styles.boldText : styles.regularText }>{ tab2 }</Text>
                 </Pressable>
             </View>
             <Animated.View style={[ styles.indicator, 
@@ -57,27 +57,25 @@ const styles = StyleSheet.create({
     },
     container: {
         flexDirection: 'row',
-        
-        paddingTop: 6
     },
     button: {
         flex: 1,
 
         alignItems: 'center'
     },
-    text: {
+    regularText: {
         includeFontPadding: false,
         fontSize: 16,
-        fontFamily: 'Pretendard-Regular',
+        fontFamily: 'NotoSansKR-Regular',
 
         paddingVertical: 15,
 
         color: '#949494'
     },
-    selectedText: {
+    boldText: {
         includeFontPadding: false,
         fontSize: 16,
-        fontFamily: 'Pretendard-Bold',
+        fontFamily: 'NotoSansKR-Bold',
 
         paddingVertical: 15,
 
@@ -85,9 +83,9 @@ const styles = StyleSheet.create({
     },
     indicator: {
         width: Dimensions.get('window').width / 2,
-        height: 3,
+        height: 2,
         
-        backgroundColor: '#fd780f'
+        backgroundColor: '#000000'
     }
 })
 

@@ -6,9 +6,13 @@ import { ScheduleList } from "../../../../../slices/schedule";
 // svg
 import Location from "../../../../../assets/imgs/schedule/icon_location_mark.svg"
 import Sunny from "../../../../../assets/imgs/weather/icon_sunny.svg"
+import TopTabBar from "../../../../../components/tabBar/TopTabBar";
+import { ScheduleNavigationProp } from "../../../../../types/stack";
+import { useNavigation } from "@react-navigation/native";
 
 const ScheduleIndex = (): JSX.Element => {
-    const [type, setType] = useState<number>(0); // 0: 현재 일정, 1: 종료된 일정
+    const navigation = useNavigation<ScheduleNavigationProp>();
+    const [tabType, setTabType] = useState<number>(0); // 0: 현재 일정, 1: 종료된 일정
     const dateType: number = 0 // 0: 12시간제, 1: 24시간제
     const [scheduleList, setScheduleList] = useState<ScheduleList[]>([
         { 
@@ -17,6 +21,8 @@ const ScheduleIndex = (): JSX.Element => {
             start: '2023-10-01T00:30:00.000Z',
             end: '2023-10-01T11:02:00.000Z',
 
+            status: 1
+
         },
         {
             id: 1,
@@ -24,6 +30,28 @@ const ScheduleIndex = (): JSX.Element => {
             start: '2023-10-01T00:00:00.000Z',
             end: '2023-10-02T10:00:00.000Z',
         
+            status: 1,
+
+            location: '압구정동', 
+            temperature: 15,
+        },
+        { 
+            id: 2,
+            title: 'end 1',
+            start: '2023-10-01T00:30:00.000Z',
+            end: '2023-10-01T11:02:00.000Z',
+
+            status: 0
+
+        },
+        {
+            id: 1,
+            title: 'end 2',
+            start: '2023-10-01T00:00:00.000Z',
+            end: '2023-10-02T10:00:00.000Z',
+        
+            status: 0,
+
             location: '압구정동', 
             temperature: 15,
         }
@@ -66,16 +94,25 @@ const ScheduleIndex = (): JSX.Element => {
         return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start);
     }
 
+    const handleTypeChange = (newType: number) => {
+        setTabType(newType)
+    }
+
     return (
         <>
             <TabHeader title="일정 목록" type={ 0 } isFocused={ false } before={""} />
-            { type === 0 ? (
+            
+            <View style={ styles.tabContainer}>
+                <TopTabBar type={ tabType } typeChange={ handleTypeChange } tab1="현재 일정" tab2="종료된 일정" />
+            </View>
+
+            { tabType === 0 ? (
                 <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
                     { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: ScheduleList, index: number ) => {
 
-                        if (item.status === 0) {
+                        if (item.status === 1) {
                             return (
-                                <Pressable style={ styles.container } key={ index }>
+                                <Pressable style={ styles.container } key={ index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id }) }>
                                     <Text style={ styles.boldText }>{ item.title }</Text>
                                     <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
                                     { item.location && (
@@ -99,25 +136,28 @@ const ScheduleIndex = (): JSX.Element => {
             ) : (
                 <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
                     { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: ScheduleList, index: number ) => {
-                        return (
-                            <Pressable style={ styles.container } key={ index }>
-                                <Text style={ styles.boldText }>{ item.title }</Text>
-                                <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
-                                { item.location && (
-                                    <View style={ styles.rowContainer }>
-                                        <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
-                                        <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
 
-                                        { item.temperature !== undefined && (
-                                            <View style={ styles.rowContainer }>
-                                                <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
-                                                <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
-                                            </View>
-                                        )}
-                                    </View>
-                                )}
-                            </Pressable>
-                        )
+                        if (item.status === 0) {
+                            return (
+                                <Pressable style={[ styles.container, { opacity: 0.7 }]} key={ index }>
+                                    <Text style={ styles.boldText }>{ item.title }</Text>
+                                    <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
+                                    { item.location && (
+                                        <View style={ styles.rowContainer }>
+                                            <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                                            <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+    
+                                            { item.temperature !== undefined && (
+                                                <View style={ styles.rowContainer }>
+                                                    <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
+                                                    <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
+                                </Pressable>
+                            )
+                        }
                     }) }
                 </ScrollView>
             )}
@@ -138,6 +178,10 @@ const styles = StyleSheet.create({
 
         borderRadius: 10,
         backgroundColor: '#ffffff'
+    },
+    tabContainer: {
+        borderTopWidth: 1,
+        borderTopColor: '#cccccc'
     },
     boldText: {
 		includeFontPadding: false,

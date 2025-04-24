@@ -100,11 +100,11 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
                                             )} 
                                         </>
                                     }   
-                                    { index === 0 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>검색</Text> }
-                                    { index === 1 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>알람</Text> }
-                                    { index === 2 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>일정</Text> }
-                                    { index === 3 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>루틴</Text> }
-                                    { index === 4 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'Pretendard-Bold', color: '#121619' } ]}>설정</Text> }
+                                    { index === 0 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>검색</Text> }
+                                    { index === 1 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>알람</Text> }
+                                    { index === 2 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>일정</Text> }
+                                    { index === 3 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>루틴</Text> }
+                                    { index === 4 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>설정</Text> }
                                 </View>
                             </Pressable>
                         </Fragment>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     regularText: {
         includeFontPadding: false,
         fontSize: 20,
-        fontFamily: 'Pretendard-Regular',
+        fontFamily: 'NotoSansKR-Regular',
 
         color: '#999999'
     },

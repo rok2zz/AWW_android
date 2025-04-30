@@ -1,8 +1,10 @@
 import { combineReducers } from 'redux'
 import weather from './weather'
 import schedule from './schedule'
+import auth from './auth'
 
 const rootReducer = combineReducers ({
+    auth,
     weather,
     schedule
 })

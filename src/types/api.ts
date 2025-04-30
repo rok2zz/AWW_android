@@ -1,4 +1,4 @@
-import { ScheduleList } from "../slices/schedule"
+import { Schedule } from "../slices/schedule"
 
 // async storage
 export interface LoginData {
@@ -23,7 +23,7 @@ export interface Response {
         code: number,
         msg?: string,
 
-        scheduleList?: ScheduleList[],
+        scheduleList?: Schedule[],
 
         result?: {
         }
@@ -34,7 +34,8 @@ export interface Payload {
     code: number,
     msg?: string,
 
-    scheduleList?: ScheduleList[],
+    scheduleList?: Schedule[],
+    schedule?: Schedule,
 }
 
 // weather

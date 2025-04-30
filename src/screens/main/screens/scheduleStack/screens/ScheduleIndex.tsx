@@ -1,7 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import TabHeader from "../../../../../components/header/TabHeader";
 import { useState } from "react";
-import { ScheduleList } from "../../../../../slices/schedule";
 
 // svg
 import Location from "../../../../../assets/imgs/schedule/icon_location_mark.svg"
@@ -9,17 +8,19 @@ import Sunny from "../../../../../assets/imgs/weather/icon_sunny.svg"
 import TopTabBar from "../../../../../components/tabBar/TopTabBar";
 import { ScheduleNavigationProp } from "../../../../../types/stack";
 import { useNavigation } from "@react-navigation/native";
+import { Schedule } from "../../../../../slices/schedule";
 
 const ScheduleIndex = (): JSX.Element => {
     const navigation = useNavigation<ScheduleNavigationProp>();
     const [tabType, setTabType] = useState<number>(0); // 0: 현재 일정, 1: 종료된 일정
     const dateType: number = 0 // 0: 12시간제, 1: 24시간제
-    const [scheduleList, setScheduleList] = useState<ScheduleList[]>([
+    const [scheduleList, setScheduleList] = useState<Schedule[]>([
         { 
             id: 0,
             title: 'todo 1',
-            start: '2023-10-01T00:30:00.000Z',
-            end: '2023-10-01T11:02:00.000Z',
+            earliestStart: '2023-10-01T00:30:00.000Z',
+            latestStart: '2023-10-01T00:30:00.000Z',
+            latestEnd: '2023-10-01T11:02:00.000Z',
 
             status: 1
 
@@ -27,8 +28,9 @@ const ScheduleIndex = (): JSX.Element => {
         {
             id: 1,
             title: 'todo 2',
-            start: '2023-10-01T00:00:00.000Z',
-            end: '2023-10-02T10:00:00.000Z',
+            earliestStart: '2023-10-01T00:00:00.000Z',
+            latestStart: '2023-10-01T00:00:00.000Z',
+            latestEnd: '2023-10-02T10:00:00.000Z',
         
             status: 1,
 
@@ -38,8 +40,9 @@ const ScheduleIndex = (): JSX.Element => {
         { 
             id: 2,
             title: 'end 1',
-            start: '2023-10-01T00:30:00.000Z',
-            end: '2023-10-01T11:02:00.000Z',
+            earliestStart: '2023-10-01T00:30:00.000Z',
+            latestStart: '2023-10-01T00:30:00.000Z',
+            latestEnd: '2023-10-01T11:02:00.000Z',
 
             status: 0
 
@@ -47,8 +50,9 @@ const ScheduleIndex = (): JSX.Element => {
         {
             id: 1,
             title: 'end 2',
-            start: '2023-10-01T00:00:00.000Z',
-            end: '2023-10-02T10:00:00.000Z',
+            earliestStart: '2023-10-01T00:00:00.000Z',
+            latestStart: '2023-10-01T00:00:00.000Z',
+            latestEnd: '2023-10-02T10:00:00.000Z',
         
             status: 0,
 
@@ -57,8 +61,8 @@ const ScheduleIndex = (): JSX.Element => {
         }
     ]);
 
-    const getTime = (item: ScheduleList): string => {
-        const start = new Date(item.start);
+    const getTime = (item: Schedule): string => {
+        const start = new Date(item.earliestStart ?? '');
         const startYear = start.getFullYear();
         const startMonth = start.getMonth() + 1;
         const startDate = start.getDate(); 
@@ -78,8 +82,8 @@ const ScheduleIndex = (): JSX.Element => {
             return hour + ':' + (minute > 10 ? minute : '0' + minute);
         }
 
-        if (item.end) {
-            const end = new Date(item.end);
+        if (item.latestEnd) {
+            const end = new Date(item.latestEnd);
             const endYear = end.getFullYear();
             const endMonth = end.getMonth() + 1;
             const endDate = end.getDate();
@@ -108,11 +112,11 @@ const ScheduleIndex = (): JSX.Element => {
 
             { tabType === 0 ? (
                 <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
-                    { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: ScheduleList, index: number ) => {
+                    { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: Schedule, index: number ) => {
 
                         if (item.status === 1) {
                             return (
-                                <Pressable style={ styles.container } key={ index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id }) }>
+                                <Pressable style={ styles.container } key={ index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
                                     <Text style={ styles.boldText }>{ item.title }</Text>
                                     <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
                                     { item.location && (
@@ -135,7 +139,7 @@ const ScheduleIndex = (): JSX.Element => {
                 </ScrollView>
             ) : (
                 <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
-                    { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: ScheduleList, index: number ) => {
+                    { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: Schedule, index: number ) => {
 
                         if (item.status === 0) {
                             return (

@@ -4,27 +4,28 @@ import { ScheduleNavigationProp } from "../../../../../types/stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useRef, useState } from "react";
 import { Focus } from "../../../../../types/screen";
+import { Schedule, Todo } from "../../../../../slices/schedule";
+import { useSchedule } from "../../../../../hooks/useSchedule";
+import { Payload } from "../../../../../types/api";
+import TabHeader from "../../../../../components/header/TabHeader";
+
 
 //svg
-import LeftArrow from "../../../../../assets/imgs/common/chevron_left.svg"
-import Start from "../../../../../assets/imgs/schedule/icon_date_start.svg"
 import End from "../../../../../assets/imgs/schedule/icon_date_end.svg"
 import EventAdd from "../../../../../assets/imgs/schedule/icon_event_add.svg"
-import TabHeader from "../../../../../components/header/TabHeader";
+import SelectedLocation from "../../../../../assets/imgs/schedule/icon_location_selected.svg"
+import Location from "../../../../../assets/imgs/schedule/icon_location_non_selected.svg"
+import TodoStart from "../../../../../assets/imgs/schedule/icon_todo_start.svg"
+import TodoCommon from "../../../../../assets/imgs/schedule/icon_todo_common.svg"
+import TodoEnd from "../../../../../assets/imgs/schedule/icon_todo_end.svg"
 
 interface ToggleProps {
     value: boolean,
     setValue: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export interface ScheduleEvent {
-    event: string,
-    startTime: Date,
-    endTime: Date,
-}
+export interface TodoType {
 
-export interface Schedule {
-    
 }
 
 // list with toggle component
@@ -63,13 +64,34 @@ const Toggle = ({ value, setValue }: ToggleProps): JSX.Element => {
 
 const ScheduleCreate = (): JSX.Element => {  
     const navigation = useNavigation<ScheduleNavigationProp>();
-    const [type, setType] = useState<number>(0); // 0: 조회하기 1: 수정하기
-    const [title, setTitle] = useState<string>('');
-    const [scheduleEvent, setScheduleEvent] = useState<ScheduleEvent[]>()
-    const [allday, setAllday] = useState<boolean>(false);
-    const [dDay, setDDay] = useState<boolean>(false);
+    const { createSchedule } = useSchedule();
+    const dateType = 0; // 0: 12시간제, 1: 24시간제
+    const [schedule, setSchedule] = useState<Schedule>({
+        title: '',
+        status: 1,
+        
+        todoList: [{
+            title: '',
+            start: '',
+            end: '',
+
+            type: true
+        }]
+    });
     const titleRef = useRef<TextInput>(null);
     const [isFocused, setIsFocused] = useState<Focus>({ ref: titleRef, isFocused: false });
+    const [titleType, setTitleType] = useState<boolean>();
+
+    useEffect(() => {
+        console.log(schedule.todoList)
+    }, [schedule.todoList])
+
+    const getStartTime = () => {
+        if (schedule && schedule.todoList) {
+            const start = new Date(schedule.todoList[0].start);
+            return start.getFullYear() + '.' + (start.getMonth() + 1) + '.' + start.getDate()
+        }
+    }
 
     // 선택한 입력칸 포커스
     const handleFocus = (ref: React.RefObject<TextInput>) => {
@@ -87,6 +109,55 @@ const ScheduleCreate = (): JSX.Element => {
         });
     };
 
+    // add todo
+    const addTodo = () => {
+
+        // setSchedule(prev => ({
+        //     ...prev, todoList: [...prev.todoList ?? [{ title: '', start: '', end: '', type: false }], { title: '', start: '', end: '', type: true}]
+        // }));
+        setSchedule(prev => {
+            const updatedTodos = prev.todoList!.map(todo => ({
+                ...todo,
+                type: false
+            }));
+        
+            const newTodo = { title: '', start: '', end: '', type: true };
+        
+            const sortedTodos = [...updatedTodos, newTodo].sort((a, b) => {
+                const aTime = a.start ? new Date(a.start).getTime() : Infinity;
+                const bTime = b.start ? new Date(b.start).getTime() : Infinity;
+                return aTime - bTime;
+            });
+        
+            return {
+                ...prev,
+                todoList: sortedTodos
+            };
+        });
+    }
+
+    const setDefaultTitle = (todo: Todo, index: number) => {
+        if (todo.title.trim() === '') {
+            setSchedule(prev => {
+                const newTodoList = [...prev.todoList ?? []];
+                newTodoList[index] = {
+                    ...newTodoList[index],
+                    title: `할 일 ${index + 1}`
+                };
+                return { ...prev, todoList: newTodoList };
+            });
+        }
+    }
+
+    // create schedule
+    const create = async () => {
+        const payload: Payload = await createSchedule(schedule);
+
+        if (payload.code === 200) {
+            navigation.navigate('ScheduleIndex');
+        }
+    }   
+
     return (
         <View style={ styles.wrapper }>
             <TabHeader title="일정 추가하기" type={ 0 } isFocused={ false } before={""} />
@@ -96,65 +167,116 @@ const ScheduleCreate = (): JSX.Element => {
                     <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
                         <TextInput style={[ styles.title, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
                             placeholder="일정 제목" placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
-                            onFocus={ () => handleFocus(titleRef) } onBlur={ () => handleBlur(titleRef)} value={ title } keyboardType="default" 
-                            onChangeText={(title: string): void => setTitle(title) } onSubmitEditing={ () => handleBlur(titleRef) } />
+                            onFocus={ () => handleFocus(titleRef) } onBlur={ () => handleBlur(titleRef)} value={ schedule.title } keyboardType="default" multiline={ false }
+                            onChangeText={(title: string): void => setSchedule(prev => ({ ...prev, title: title }))} onSubmitEditing={ () => handleBlur(titleRef) } />
                     </View>
+
+                    { schedule.todoList && schedule.todoList.length > 0 && schedule.todoList[0].start !== '' && (
+                        <Text style={[ styles.regularText, { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getStartTime() }</Text>
+                    )}
                     
-                    {/* <View style={ styles.dateContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            <Text style={[ styles.boldText, { lineHeight: 28 }]}>하루종일</Text>
-                        </View>
-                        <Toggle value={ allday } setValue={ setAllday }/>
-                    </View> */}
+                    {/* todolist  */}
+                    { schedule.todoList && schedule.todoList.map((item: Todo, index: number) => {
+                        const getTime = (item: Todo): string => {
+                            const start = new Date(item.start);
+                    
+                            const formatTime = (date: Date) => {
+                                let hour = date.getHours();
+                                let minute = date.getMinutes();
+                                let ampm = '오전';
+                    
+                                if (dateType === 0) {
+                                    ampm = hour >= 12 ? '오후' : '오전';
+                                    hour = hour > 12 ? hour - 12 : 0 + hour;
+                    
+                                    return ampm + ' ' + hour + ':' + (minute > 10 ? minute : '0' + minute);
+                                }
+                    
+                                return hour + ':' + (minute > 10 ? minute : '0' + minute);
+                            }
+                    
+                            if (item.end) {
+                                const end = new Date(item.end);
+                                console.log(end)
+                    
+                                return formatTime(start) + ' ~ ' + formatTime(end);
+                            }
+                    
+                            return formatTime(start);
+                        }
 
-                    <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
-                        <TextInput style={[ styles.eventTitle, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
-                            placeholder="할일 제목" placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
-                            onFocus={ () => handleFocus(titleRef) } onBlur={ () => handleBlur(titleRef)} value={ title } keyboardType="default" 
-                            onChangeText={(title: string): void => setTitle(title) } onSubmitEditing={ () => handleBlur(titleRef) } />
-                    </View>
-
-                    <View style={ styles.dateContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            {/* <Start style={ styles.icon } /> */}
-                            <Text style={ styles.regularText }>시작</Text>
-                        </View>
-                        <View>
-                            <Text></Text>
-                        </View>
-                    </View>
-                    <View style={ styles.dateContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            {/* <End style={ styles.icon } /> */}
-                            <Text style={ styles.regularText }>종료</Text>
-                        </View>
-                    </View>
+                        if (item.type) {
+                            return (
+                                <View key={ index }>
+                                    <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
+                                        <TextInput style={[ styles.eventTitle, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
+                                            placeholder={`할 일 ${index + 1}`} placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
+                                            value={ item.title } keyboardType="default" 
+                                            onChangeText={(text) => {
+                                                setSchedule(prev => {
+                                                    const newList = [...(prev.todoList || [])]; 
+                                                    newList[index].title = text;
+                                                    return { ...prev, todoList: newList };
+                                                });
+                                            }} />
+                                    </View>
+                                    <View style={ styles.dateContainer }>
+                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                            <Text style={ styles.regularText }>시작</Text>
+                                        </View>
+                                        <View>
+                                            <Text></Text>
+                                        </View>
+                                    </View>
+                                    <View style={ styles.dateContainer }>
+                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                            <Text style={ styles.regularText }>종료</Text>
+                                        </View>
+                                    </View>
+                                    <View style={ styles.dateContainer }>
+                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                            { item.location ? <SelectedLocation style={ styles.icon } /> : <Location style={ styles.icon } /> }
+                                        
+                                            <Text style={ styles.regularText }>장소</Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            )
+                        }
+                        
+                        if (schedule.todoList) {
+                            return (
+                                <View style={[ styles.rowContainer, { paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]} key={ index }>
+                                    <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                        { index === 0 && <TodoStart style={ styles.todoIcon } /> }
+                                        { index === schedule.todoList.length - 1 && <TodoEnd style={ styles.todoIcon } /> }
+                                        { index > 0 && index < schedule.todoList.length - 1 &&  <TodoCommon style={ styles.todoIcon } /> }
+    
+                                        <Text style={[ styles.regularText, { letterSpacing: -0.5 } ]}>{ item.title }</Text>
+                                    </View>
+                                    <Text style={[ styles.regularText, { fontSize: 14, letterSpacing: -0.5 }]}>{ getTime(item) }</Text>
+                                </View>
+                            )
+                        }
+                    })}
 
                     {/* Event add button */}
-                    <Pressable style={[ styles.button, { padding: 15 }]} onPress={ () => {} }>
+                    <Pressable style={ styles.button } onPress={ addTodo }>
                         <View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
                             <EventAdd style={{ marginRight: 10 }} />
                             <Text style={[ styles.regularText, { color: '#999999', opacity: 0.5 }]}>할일 추가하기</Text>
                         </View>
                     </Pressable>
+
+                    {/* save */}
+                    { schedule.title && schedule.title !== '' ? (
+                        <Pressable style={[ styles.button, { alignItems: 'center', marginVertical: 20, backgroundColor: '#468ce6' }]} onPress={ create }>
+                            <Text style={[ styles.regularText, { color: '#ffffff' }]}>저장</Text>
+                        </Pressable>
+                    ) : (
+                        <View style={{ marginBottom: 20 }}></View>
+                    )}
                 </View>
-
-                {/* <View style={ styles.blockContainer}> 
-                    <View style={ styles.rowContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            <Text style={[ styles.boldText, { lineHeight: 28 }]}>저장 캘린더</Text>
-                        </View>
-                    </View>
-                </View> */}
-
-                {/* <View style={ styles.blockContainer}> 
-                    <View style={ styles.rowContainer }>
-                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            <Text style={[ styles.boldText, { lineHeight: 28 }]}>D-day 날씨 알림</Text>
-                        </View>
-                        <Toggle value={ dDay } setValue={ setDDay }/>
-                    </View>
-                </View> */}
             </ScrollView>
         </View>
     );
@@ -187,7 +309,7 @@ const styles = StyleSheet.create({
     },
     regularText: {
         includeFontPadding: false,
-        fontSize: 20,
+        fontSize: 16,
         fontFamily: 'NotoSansKR-Regular',
 
         color: '#666666'
@@ -207,19 +329,22 @@ const styles = StyleSheet.create({
         flex: 1,
         height: 60,
 
+        includeFontPadding: false,
         fontSize: 24,
         fontFamily: 'NotoSansKR-Bold',
 
         color: '#333333'
     },
     eventTitle: {
+        alignItems: 'center',
         flex: 1,
         height: 60,
 
-        fontSize: 20,
+        includeFontPadding: false,
+        fontSize: 16,
         fontFamily: 'NotoSansKR-Regular',
 
-        color: '#666666'
+        color: '#666666',
     },
     blockContainer: {
         marginTop: 20,
@@ -255,9 +380,12 @@ const styles = StyleSheet.create({
     icon: {
         marginRight: 5
     },
+    todoIcon: {
+        marginRight: 10
+    },
     button: {
 		padding: 20,
-		marginVertical: 20,
+		marginTop: 20,
 
 		borderRadius: 10,
 

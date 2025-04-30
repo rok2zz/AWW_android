@@ -1,15 +1,20 @@
-import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Animated, Easing, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { ScheduleNavigationProp, ScheduleStackParamList } from "../../../../../types/stack";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Focus } from "../../../../../types/screen";
 import TabHeader from "../../../../../components/header/TabHeader";
-import { ScheduleList } from "../../../../../slices/schedule";
+import { Schedule, Todo } from "../../../../../slices/schedule";
+import { useSchedule } from "../../../../../hooks/useSchedule";
+import { Payload } from "../../../../../types/api";
 
 // svg
 import End from "../../../../../assets/imgs/schedule/icon_schedule_end.svg" 
 import Delete from "../../../../../assets/imgs/schedule/icon_schedule_delete.svg"
+import TodoStart from "../../../../../assets/imgs/schedule/icon_todo_start.svg"
+import TodoCommon from "../../../../../assets/imgs/schedule/icon_todo_common.svg"
+import TodoEnd from "../../../../../assets/imgs/schedule/icon_todo_end.svg"
+
 
 interface ToggleProps {
     value: boolean,
@@ -62,30 +67,42 @@ const Toggle = ({ value, setValue }: ToggleProps): JSX.Element => {
 
 const ScheduleDetail = ({ route }: Props): JSX.Element => {  
     const navigation = useNavigation<ScheduleNavigationProp>();
+    const scheduleId = route.params.id;
+    const { getSchedule, deleteSchedule, endSchedule } = useSchedule();
     const [type, setType] = useState<number>(0); // 0: 조회하기 1: 수정하기
     const dateType: number = 0 // 0: 12시간제, 1: 24시간제
-    const [schedule, setSchedule] = useState<ScheduleList>(
-        { 
+    const [schedule, setSchedule] = useState<Schedule>({
+        id: 0,
+        title: '',
+
+        status: 1,
+        todoList: [{
             id: 0,
-            title: 'todo 1',
-            start: '2023-10-01T00:30:00.000Z',
-            end: '2023-10-01T11:02:00.000Z',
+            title: '',
+            start: 'new Date()',
+            end: 'new Date()',
 
-            status: 1,
-            todo: [{
-                id: 0,
-                title: '할일 1',
-                start: '2023-10-01T00:30:00.000Z',
-                end: '2023-10-01T05:30:00.000Z',
-
-                location: '신사동',
-                temperature: 12
-            }]
-        }
-    );    
-    const [scheduleEvent, setScheduleEvent] = useState<ScheduleEvent[]>()
+            location: '',
+            temperature: 0,
+            
+            type: false
+        }]
+    });    
+    const [scheduleEvent, setScheduleEvent] = useState<ScheduleEvent[]>();
     const titleRef = useRef<TextInput>(null);
     const [isFocused, setIsFocused] = useState<Focus>({ ref: titleRef, isFocused: false });
+
+    useEffect(() => {
+        const getScheduleDetail = async () => {
+            const payload = await getSchedule(scheduleId);
+
+            if (payload.schedule) {
+                setSchedule(payload.schedule)
+            }
+        }
+
+        getScheduleDetail();
+    }, [])
 
     // 선택한 입력칸 포커스
     const handleFocus = (ref: React.RefObject<TextInput>) => {
@@ -103,7 +120,7 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
         });
     };
 
-    const getTime = (item: ScheduleList): string => {
+    const getTime = (item: Todo): string => {
         const start = new Date(item.start);
         const startYear = start.getFullYear();
         const startMonth = start.getMonth() + 1;
@@ -126,81 +143,162 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
 
         if (item.end) {
             const end = new Date(item.end);
-            const endYear = end.getFullYear();
-            const endMonth = end.getMonth() + 1;
-            const endDate = end.getDate();
+            console.log(end)
 
-            if (startYear === endYear && startMonth === endMonth && startDate === endDate) {
-                return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start) + ' ~ ' + formatTime(end);
-            }
-
-            return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start) + ' ~ ' + endYear + '.' + endMonth + '.' + endDate + ' ' + formatTime(end);
+            return formatTime(start) + ' ~ ' + formatTime(end);
         }
 
-        return startYear + '.' + startMonth + '.' + startDate + ' ' + formatTime(start);
+        return formatTime(start);
     }
 
     const getStartTime = () => {
-        if (schedule.start) {
-            const start = new Date(schedule.start);
+        if (schedule && schedule.todoList) {
+            const start = new Date(schedule.todoList[0].start);
             return start.getFullYear() + '.' + (start.getMonth() + 1) + '.' + start.getDate()
         }
     }
 
     // delete schedule
-    const deleteSchedule = () => {
-        setSchedule(prev => ({ ...prev, status: -1 }))    
+    const remove = async () => {
+        Alert.alert(
+            '알림',
+            '일정을 삭제하시겠습니까?',
+            [
+                {
+                    text: '취소',
+                    onPress: () => { return },
+                    style: 'cancel',
+                },{
+                    text: '확인', 
+                    onPress: async (): Promise<void> => { 
+                        const payload: Payload = await deleteSchedule(scheduleId)
+                        if (payload.code === 200) {
+                            Alert.alert('알림', '일정이 삭제되었습니다.')
+                            navigation.goBack();
+                        }
+                    },
+                }
+            ],
+        )
     };
 
-    return (
-        <>
-            <TabHeader title="일정 상세보기" type={ 0 } isFocused={ false } before={""} />
-            <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
-                <View style={ styles.container }>
-                    <View style={[ styles.rowContainer, { marginBottom: 26 }]}>
-                        <Text style={[ styles.boldText, { flex: 1 }]}>{ schedule.title }</Text>
-                        { type === 0 && 
-                            <View style={ styles.modifyBtn }>
-                                <Text style={[ styles.boldText, { fontSize: 16, color: '#ffffff' }]}>수정하기</Text>
-                            </View>
+    // end schedule
+    const end = async () => {
+        Alert.alert(
+            '알림',
+            '일정을 종료하시겠습니까?',
+            [
+                {
+                    text: '취소',
+                    onPress: () => { return },
+                    style: 'cancel',
+                },{
+                    text: '확인', 
+                    onPress: async (): Promise<void> => { 
+                        const payload: Payload = await endSchedule(scheduleId)
+                        if (payload.code === 200) {
+                            Alert.alert('알림', '일정이 종료되었습니다.')
+                            navigation.goBack();
                         }
-                    </View>
-                    <Text style={[ styles.regularText, { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getStartTime() }</Text>
-                    {/* { location && (
-                        <View style={ styles.rowContainer }>
-                            <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
-                            <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+                    },
+                }
+            ],
+        )
 
-                            { item.temperature !== undefined && (
-                                <View style={ styles.rowContainer }>
-                                    <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
-                                    <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
+        
+    }
+
+    return (
+        <View style={{ flex: 1 }}>
+            <TabHeader title="일정 상세보기" type={ 0 } isFocused={ false } before={""} />
+            { schedule &&
+                <ScrollView showsVerticalScrollIndicator={ false } contentContainerStyle={{ flexGrow: 1 }}>
+                    <View style={ styles.wrapper }>
+                        <View style={ styles.container }>
+                            <View style={[ styles.rowContainer, { marginBottom: 26 }]}>
+                                <Text style={[ styles.boldText, { flex: 1 }]}>{ schedule.title }</Text>
+                                { type === 0 && 
+                                    <Pressable style={ styles.modifyBtn } onPress={ () => setType(1) }>
+                                        <Text style={[ styles.boldText, { fontSize: 16, color: '#ffffff' }]}>수정하기</Text>
+                                    </Pressable>
+                                }
+                            </View>
+    
+                            { type === 0 ? (
+                                // 조회
+                                <View>
+                                    <Text style={[ styles.regularText, { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getStartTime() }</Text>
+
+                                    { schedule.todoList && schedule.todoList.length > 0 && schedule.todoList.map(( item: Todo, index: number ) => {
+                                        if (schedule.todoList &&  schedule.todoList?.length > 0) {
+                                            return (
+                                                <View style={[ styles.rowContainer, { paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]} key={ index }>
+                                                    <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                                        { index === 0 && <TodoStart style={ styles.todoIcon } /> }
+                                                        { index === schedule.todoList.length - 1 && <TodoEnd style={ styles.todoIcon } /> }
+                                                        { index > 0 && index < schedule.todoList.length - 1 &&  <TodoCommon style={ styles.todoIcon } /> }
+
+                                                        <Text style={[ styles.regularText, { letterSpacing: -0.5 } ]}>{ item.title }</Text>
+                                                    </View>
+                                                    <Text style={[ styles.regularText, { fontSize: 14, letterSpacing: -0.5 }]}>{ getTime(item) }</Text>
+                                                </View>
+                                            )
+                                        }
+                                    })}
+                                </View>
+
+                            ) : (
+                                <View>
+                                    <Text style={[ styles.regularText, { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getStartTime() }</Text>
                                 </View>
                             )}
+
+                            {/* { location && (
+                                <View style={ styles.rowContainer }>
+                                    <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                                    <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+
+                                    { item.temperature !== undefined && (
+                                        <View style={ styles.rowContainer }>
+                                            <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
+                                            <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
+                                        </View>
+                                    )}
+                                </View>
+                            )} */}
                         </View>
-                    )} */}
-                </View>
 
-                {/* schedule end */}
-                { schedule.status === 1 && 
-                    <Pressable style={ styles.button } onPress={ () => setSchedule(prev => ({...prev, status: 0 }))}>
-                        <End style={{ marginRight: 7 }} />
-                        <Text style={[ styles.regularText, { fontSize: 20, color: '#ef4f4f'}]}>일정 종료하기</Text>
-                    </Pressable>
-                }
+                        {/* schedule end */}
+                        { type === 0 &&
+                            <View>
+                                { schedule.status === 1 && 
+                                    <Pressable style={ styles.button } onPress={ end }>
+                                        <End style={{ marginRight: 7 }} />
+                                        <Text style={[ styles.regularText, { fontSize: 20, color: '#ef4f4f'}]}>일정 종료하기</Text>
+                                    </Pressable>
+                                }
 
-                <Pressable style={ styles.button } onPress={ deleteSchedule }>
-                    <Delete style={{ marginRight: 7 }}  />
-                    <Text style={[ styles.regularText, { fontSize: 20, color: '#ef4f4f'}]}>일정 삭제하기</Text>
-                </Pressable>
-            </ScrollView>
-        </>
+                                <Pressable style={ styles.button } onPress={ remove }>
+                                    <Delete style={{ marginRight: 7 }}  />
+                                    <Text style={[ styles.regularText, { fontSize: 20, color: '#ef4f4f'}]}>일정 삭제하기</Text>
+                                </Pressable>
+                            </View>
+                        }
+                        
+                    </View>
+                </ScrollView>
+            }
+            
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     wrapper: {
-        flex: 1,
+        flex: 1 , 
+        justifyContent: 'space-between', 
+
+        marginBottom: 150 
     },
     header: {
         flexDirection: 'row',
@@ -231,11 +329,10 @@ const styles = StyleSheet.create({
         color: '#666666'
     },
     container: {
-        
         padding: 20,
         marginTop: 20,
         marginHorizontal: 20,
-
+    
         borderRadius: 10,
         backgroundColor: '#ffffff'
     },
@@ -301,6 +398,9 @@ const styles = StyleSheet.create({
     },
     icon: {
         marginRight: 5
+    },
+    todoIcon: {
+        marginRight: 10
     },
     button: {
         flexDirection: 'row',

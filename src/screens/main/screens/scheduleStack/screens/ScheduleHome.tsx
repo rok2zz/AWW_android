@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { ScheduleNavigationProp } from '../../../../../types/stack';
 import Swiper from 'react-native-swiper';
 import { FavoriteLocation } from '../../../../../slices/location';
 import { FavoriteWeather } from '../../../../../slices/weather';
+import { Schedule } from '../../../../../slices/schedule';
+import { useMainScheduleList, useSchedule } from '../../../../../hooks/useSchedule';
+import { useAndroidId } from '../../../../../hooks/useAuth';
 
 // svg
 import Dot from "../../../../../assets/imgs/common/paging_dot.svg"
@@ -14,8 +17,13 @@ import Plus from "../../../../../assets/imgs/schedule/icon_plus.svg"
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add.svg"
 import Sunny from "../../../../../assets/imgs/weather/icon_sunny.svg"
 
+
 const ScheduleHome = (): React.JSX.Element => {
     const navigation = useNavigation<ScheduleNavigationProp>()
+	const { getMainScheduleList } = useSchedule();
+	const androidId: string = useAndroidId();
+	const isFocused: boolean = useIsFocused();
+
 	const [favoriteLocation, setFavoriteLocation] = useState<FavoriteLocation[]>([{ key: '1', lattitude: 1, longitude: 1 },{ key: '1', lattitude: 1, longitude: 1 }])
 	const [weather, setWeather] = useState<any>({
 		key: '5',
@@ -52,10 +60,22 @@ const ScheduleHome = (): React.JSX.Element => {
 			dust: '매우 나쁨'
 		},
 	])	
+	const scheduleList: Schedule[] = useMainScheduleList();
+
+
+	useEffect(() => {
+		if (androidId && isFocused) {
+			getMainSchedule();
+		}
+	}, [isFocused, androidId]);
+
+	const getMainSchedule = async () => {
+		await getMainScheduleList('test001');
+	};
 
 	return (
 		<View style={ styles.wrapper }>
-			<View style={ styles.container }>
+			<ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
 				{/* marked area */}
 				{ favoriteWeather && favoriteWeather.length > 0 ? (
 					<View style={[ styles.contents, { padding: 0, height: 150 }]}>
@@ -154,24 +174,65 @@ const ScheduleHome = (): React.JSX.Element => {
 
 				</View> */}
 
-				{/* schedule button */}
-				<Pressable style={[ styles.contents, { padding: 15 }]} onPress={ () => navigation.navigate('ScheduleCreate') }>
-					<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
-						<ScheduleAdd style={{ marginRight: 10 }} />
-						<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>
+				{/* schedule */}
+				{ scheduleList ? (
+					<View style={[ styles.contents, { marginBottom: 150 }]}>
+						<View style={ styles.rowContainer }>
+							<Text style={[ styles.regularText, { flex: 1 }]}>일정</Text>
+							<Pressable onPress={ () => navigation.navigate('ScheduleIndex') }>
+								<Text style={[ styles.regularText, { fontSize: 12 }]}>더 보기 +</Text>
+							</Pressable>
+						</View>
+						<View style={ styles.scheduleContainer }>
+							{ scheduleList && scheduleList.length > 0 && scheduleList.map(( item: Schedule, index: number ) => {
+								const getTime = (date: string): string => {
+									const start = new Date(date);
+									const hour = start.getHours();
+									const minute = start.getMinutes();
+									const days = ['일', '월', '화', '수', '목', '금', '토'];
+
+									return `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]}) ${hour < 10 ? '0' + hour : hour }:${minute < 10 ? '0' + minute : minute}`;
+								}
+
+								if (index < 5 && item.status == 1) {
+									return (
+										<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) } key={ index }>
+											<View style={[ styles.rowContainer, { padding: 20 }]}>
+												<Text style={[ styles.regularText, { flex: 1, fontSize: 16 }]}>{ item.title }</Text>
+												<Text style={[ styles.regularText, { fontSize: 14, color: 'rgba(255, 255, 255, 0.5)'} ]}>{ getTime(item.earliestStart ?? '') }</Text>
+											</View>
+										</Pressable>
+									)
+								}
+							})}
+						</View>
+						<Pressable style={[ styles.contents, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]} onPress={ () => navigation.navigate('ScheduleCreate') }>
+							<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
+								<ScheduleAdd style={{ marginRight: 10 }} />
+								<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>
+							</View>
+						</Pressable>
 					</View>
-				</Pressable>
-			</View>
+				) : (
+					<Pressable style={ styles.contents } onPress={ () => navigation.navigate('ScheduleCreate') }>
+						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
+							<ScheduleAdd style={{ marginRight: 10 }} />
+							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>
+						</View>
+					</Pressable>
+				)}
+				
+			</ScrollView>
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
 	wrapper: {
-
+		flex: 1,
 	},
 	container: {
-		marginHorizontal: 20
+		marginHorizontal: 20,
 	},
 	contents: {
 		padding: 20,
@@ -223,6 +284,16 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginRight: 15,
 	},
+	scheduleContainer: {
+		marginTop: 20,
+		
+		borderRadius: 10,
+		backgroundColor: 'rgba(255, 255, 255, 0.1)',
+	},
+	scheduleList: {
+		borderBottomWidth: 1,
+		borderBottomColor: 'rgba(255, 255, 255, 0.25)',
+	}
 })
 
 export default ScheduleHome;

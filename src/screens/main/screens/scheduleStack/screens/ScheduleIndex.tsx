@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import TabHeader from "../../../../../components/header/TabHeader";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // svg
 import Location from "../../../../../assets/imgs/schedule/icon_location_mark.svg"
@@ -9,57 +9,25 @@ import TopTabBar from "../../../../../components/tabBar/TopTabBar";
 import { ScheduleNavigationProp } from "../../../../../types/stack";
 import { useNavigation } from "@react-navigation/native";
 import { Schedule } from "../../../../../slices/schedule";
+import { useCurrentScheduleList, usePastScheduleList, useSchedule } from "../../../../../hooks/useSchedule";
+import { Payload } from "../../../../../types/api";
 
 const ScheduleIndex = (): JSX.Element => {
     const navigation = useNavigation<ScheduleNavigationProp>();
+    const { getScheduleList } = useSchedule();
     const [tabType, setTabType] = useState<number>(0); // 0: 현재 일정, 1: 종료된 일정
-    const dateType: number = 0 // 0: 12시간제, 1: 24시간제
-    const [scheduleList, setScheduleList] = useState<Schedule[]>([
-        { 
-            id: 0,
-            title: 'todo 1',
-            earliestStart: '2023-10-01T00:30:00.000Z',
-            latestStart: '2023-10-01T00:30:00.000Z',
-            latestEnd: '2023-10-01T11:02:00.000Z',
+    const dateType: number = 0; // 0: 12시간제, 1: 24시간제
+    const currentScheduleList: Schedule[] = useCurrentScheduleList();
+    const pastScheduleList: Schedule[] = usePastScheduleList();
 
-            status: 1
+    useEffect(() => {
+        getSchedule();
+    }, []);
 
-        },
-        {
-            id: 1,
-            title: 'todo 2',
-            earliestStart: '2023-10-01T00:00:00.000Z',
-            latestStart: '2023-10-01T00:00:00.000Z',
-            latestEnd: '2023-10-02T10:00:00.000Z',
-        
-            status: 1,
-
-            location: '압구정동', 
-            temperature: 15,
-        },
-        { 
-            id: 2,
-            title: 'end 1',
-            earliestStart: '2023-10-01T00:30:00.000Z',
-            latestStart: '2023-10-01T00:30:00.000Z',
-            latestEnd: '2023-10-01T11:02:00.000Z',
-
-            status: 0
-
-        },
-        {
-            id: 1,
-            title: 'end 2',
-            earliestStart: '2023-10-01T00:00:00.000Z',
-            latestStart: '2023-10-01T00:00:00.000Z',
-            latestEnd: '2023-10-02T10:00:00.000Z',
-        
-            status: 0,
-
-            location: '압구정동', 
-            temperature: 15,
-        }
-    ]);
+    // get Schedule list
+    const getSchedule = async (): Promise<void> => {
+        const payload: Payload = await getScheduleList('test001');
+    };
 
     const getTime = (item: Schedule): string => {
         const start = new Date(item.earliestStart ?? '');
@@ -112,57 +80,62 @@ const ScheduleIndex = (): JSX.Element => {
 
             { tabType === 0 ? (
                 <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
-                    { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: Schedule, index: number ) => {
+                    <View style={{ marginBottom: 150 }}>
+                        { currentScheduleList && currentScheduleList.length > 0 && currentScheduleList.map(( item: Schedule, index: number ) => {
 
-                        if (item.status === 1) {
-                            return (
-                                <Pressable style={ styles.container } key={ index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
-                                    <Text style={ styles.boldText }>{ item.title }</Text>
-                                    <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
-                                    { item.location && (
-                                        <View style={ styles.rowContainer }>
-                                            <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
-                                            <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
-    
-                                            { item.temperature !== undefined && (
-                                                <View style={ styles.rowContainer }>
-                                                    <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
-                                                    <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                    )}
-                                </Pressable>
-                            )
-                        }
-                    })}
+                            if (item.status === 1) {
+                                return (
+                                    <Pressable style={ styles.container } key={ index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
+                                        <Text style={ styles.boldText }>{ item.title }</Text>
+                                        <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
+                                        { item.location && (
+                                            <View style={ styles.rowContainer }>
+                                                <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                                                <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+        
+                                                { item.temperature !== undefined && (
+                                                    <View style={ styles.rowContainer }>
+                                                        <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
+                                                        <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        )}
+                                    </Pressable>
+                                )
+                            }
+                        })}
+                    </View>
                 </ScrollView>
             ) : (
                 <ScrollView style={ styles.wrapper } showsVerticalScrollIndicator={ false }>
-                    { scheduleList && scheduleList.length > 0 && scheduleList.map(( item: Schedule, index: number ) => {
+                    <View style={{ marginBottom: 150 }}>
+                        { pastScheduleList && pastScheduleList.length > 0 && pastScheduleList.map(( item: Schedule, index: number ) => {
 
-                        if (item.status === 0) {
-                            return (
-                                <Pressable style={[ styles.container, { opacity: 0.7 }]} key={ index }>
-                                    <Text style={ styles.boldText }>{ item.title }</Text>
-                                    <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
-                                    { item.location && (
-                                        <View style={ styles.rowContainer }>
-                                            <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
-                                            <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
-    
-                                            { item.temperature !== undefined && (
-                                                <View style={ styles.rowContainer }>
-                                                    <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
-                                                    <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                    )}
-                                </Pressable>
-                            )
-                        }
-                    }) }
+                            if (item.status === 0) {
+                                return (
+                                    <Pressable style={[ styles.container, { opacity: 0.7 }]} key={ index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
+                                        <Text style={ styles.boldText }>{ item.title }</Text>
+                                        <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
+                                        { item.location && (
+                                            <View style={ styles.rowContainer }>
+                                                <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                                                <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+
+                                                { item.temperature !== undefined && (
+                                                    <View style={ styles.rowContainer }>
+                                                        <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
+                                                        <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        )}
+                                    </Pressable>
+                                )
+                            }
+                        })}
+                    </View>
+                    
                 </ScrollView>
             )}
             
@@ -173,7 +146,6 @@ const ScheduleIndex = (): JSX.Element => {
 
 const styles = StyleSheet.create({
     wrapper: {
-        
     },
     container: {
         padding: 20,

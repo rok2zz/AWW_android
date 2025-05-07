@@ -6,7 +6,7 @@ import Swiper from 'react-native-swiper';
 import { FavoriteLocation } from '../../../../../slices/location';
 import { FavoriteWeather } from '../../../../../slices/weather';
 import { Schedule } from '../../../../../slices/schedule';
-import { useMainScheduleList, useSchedule } from '../../../../../hooks/useSchedule';
+import { useSchedule } from '../../../../../hooks/useSchedule';
 import { useAndroidId } from '../../../../../hooks/useAuth';
 
 // svg
@@ -16,6 +16,7 @@ import FilledStar from "../../../../../assets/imgs/schedule/icon_filled_star.svg
 import Plus from "../../../../../assets/imgs/schedule/icon_plus.svg"
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add.svg"
 import Sunny from "../../../../../assets/imgs/weather/icon_sunny.svg"
+import { Payload } from '../../../../../types/api';
 
 
 const ScheduleHome = (): React.JSX.Element => {
@@ -60,7 +61,7 @@ const ScheduleHome = (): React.JSX.Element => {
 			dust: '매우 나쁨'
 		},
 	])	
-	const scheduleList: Schedule[] = useMainScheduleList();
+	const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
 
 
 	useEffect(() => {
@@ -70,7 +71,11 @@ const ScheduleHome = (): React.JSX.Element => {
 	}, [isFocused, androidId]);
 
 	const getMainSchedule = async () => {
-		await getMainScheduleList('test001');
+		const payload: Payload = await getMainScheduleList('test001');
+
+		if (payload.code === 200) {
+			setScheduleList(payload.scheduleList ?? [])
+		}
 	};
 
 	return (
@@ -78,7 +83,7 @@ const ScheduleHome = (): React.JSX.Element => {
 			<ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
 				{/* marked area */}
 				{ favoriteWeather && favoriteWeather.length > 0 ? (
-					<View style={[ styles.contents, { padding: 0, height: 150 }]}>
+					<View style={[ styles.contents, { padding: 0, height: 160 }]}>
 						<Swiper
 							style={{ height: 150 }}
 							paginationStyle={{ marginBottom: -10 }}
@@ -175,7 +180,7 @@ const ScheduleHome = (): React.JSX.Element => {
 				</View> */}
 
 				{/* schedule */}
-				{ scheduleList ? (
+				{ scheduleList && scheduleList.length > 0 ? (
 					<View style={[ styles.contents, { marginBottom: 150 }]}>
 						<View style={ styles.rowContainer }>
 							<Text style={[ styles.regularText, { flex: 1 }]}>일정</Text>
@@ -214,7 +219,7 @@ const ScheduleHome = (): React.JSX.Element => {
 						</Pressable>
 					</View>
 				) : (
-					<Pressable style={ styles.contents } onPress={ () => navigation.navigate('ScheduleCreate') }>
+					<Pressable style={[ styles.contents, { marginBottom: 150 }]} onPress={ () => navigation.navigate('ScheduleCreate') }>
 						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
 							<ScheduleAdd style={{ marginRight: 10 }} />
 							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>

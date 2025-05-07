@@ -17,24 +17,42 @@ export interface Schedule {
 }
 
 export interface Todo {
+    type: number,
     id?: number,
     title: string,
-    start: string,
-    end?: string,
+    startTime: string,
+    endTime?: string,
 
     location?: string,
+    lat?: number,
+    long?: number,
     temperature?: number,
 
-    type: boolean
+    handle: boolean
 }
 
 interface ScheduleState {
     mainScheduleList: Schedule[],
-    scheduleList?: Schedule[],
+    currentScheduleList: Schedule[],
+    pastScheduleList: Schedule[],
 }
 
 const initialState: ScheduleState = {
     mainScheduleList: [{
+        id: 0,
+        title: '',
+        earliestStart: '',
+        latestStart: '',
+        latestEnd: '',
+    }],
+    currentScheduleList: [{
+        id: 0,
+        title: '',
+        earliestStart: '',
+        latestStart: '',
+        latestEnd: '',
+    }],
+    pastScheduleList: [{
         id: 0,
         title: '',
         earliestStart: '',
@@ -50,8 +68,11 @@ const scheduleSlice = createSlice ({
         saveMainScheduleList(state, action: PayloadAction<Schedule[]>) {
             state.mainScheduleList = action.payload
         },
-        saveScheduleList(state, action: PayloadAction<Schedule[]>) {
-            state.scheduleList = action.payload
+        saveCurrentScheduleList(state, action: PayloadAction<Schedule[]>) {
+            state.currentScheduleList = action.payload
+        },
+        savePastScheduleList(state, action: PayloadAction<Schedule[]>) {
+            state.pastScheduleList = action.payload
         },
         clearWeather() {
             return initialState
@@ -60,4 +81,4 @@ const scheduleSlice = createSlice ({
 })
 
 export default scheduleSlice.reducer
-export const { saveMainScheduleList, saveScheduleList, clearWeather } = scheduleSlice.actions
+export const { saveMainScheduleList, saveCurrentScheduleList, savePastScheduleList, clearWeather } = scheduleSlice.actions

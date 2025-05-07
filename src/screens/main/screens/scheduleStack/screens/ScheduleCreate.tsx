@@ -1,4 +1,4 @@
-import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Animated, Easing, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScheduleNavigationProp } from "../../../../../types/stack";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,16 +8,13 @@ import { Schedule, Todo } from "../../../../../slices/schedule";
 import { useSchedule } from "../../../../../hooks/useSchedule";
 import { Payload } from "../../../../../types/api";
 import TabHeader from "../../../../../components/header/TabHeader";
-
+import RNDateTimePicker from "@react-native-community/datetimepicker";
 
 //svg
-import End from "../../../../../assets/imgs/schedule/icon_date_end.svg"
 import EventAdd from "../../../../../assets/imgs/schedule/icon_event_add.svg"
 import SelectedLocation from "../../../../../assets/imgs/schedule/icon_location_selected.svg"
 import Location from "../../../../../assets/imgs/schedule/icon_location_non_selected.svg"
-import TodoStart from "../../../../../assets/imgs/schedule/icon_todo_start.svg"
-import TodoCommon from "../../../../../assets/imgs/schedule/icon_todo_common.svg"
-import TodoEnd from "../../../../../assets/imgs/schedule/icon_todo_end.svg"
+import TodoDelete from "../../../../../assets/imgs/schedule/icon_todo_delete.svg"
 
 interface ToggleProps {
     value: boolean,
@@ -62,6 +59,20 @@ const Toggle = ({ value, setValue }: ToggleProps): JSX.Element => {
     )
 }
 
+const getNextTime = () => {
+    const now = new Date();
+    if (now.getMinutes() > 0) {
+        now.setMinutes(0);
+        now.setSeconds(0);
+        now.setMilliseconds(0);
+        now.setHours(now.getHours() + 1);
+
+        return now;
+    }
+
+    return now;
+}
+
 const ScheduleCreate = (): JSX.Element => {  
     const navigation = useNavigation<ScheduleNavigationProp>();
     const { createSchedule } = useSchedule();
@@ -71,24 +82,22 @@ const ScheduleCreate = (): JSX.Element => {
         status: 1,
         
         todoList: [{
+            type: 0,
             title: '',
-            start: '',
-            end: '',
+            startTime: getNextTime().toISOString(),
 
-            type: true
+            handle: true
         }]
     });
     const titleRef = useRef<TextInput>(null);
     const [isFocused, setIsFocused] = useState<Focus>({ ref: titleRef, isFocused: false });
-    const [titleType, setTitleType] = useState<boolean>();
-
-    useEffect(() => {
-        console.log(schedule.todoList)
-    }, [schedule.todoList])
-
+    const [showPicker, setShowPicker] = useState(false);
+    const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
+    const [targetKey, setTargetKey] = useState<'startTime' | 'endTime'>('startTime');
+    
     const getStartTime = () => {
         if (schedule && schedule.todoList) {
-            const start = new Date(schedule.todoList[0].start);
+            const start = new Date(schedule.todoList[0].startTime);
             return start.getFullYear() + '.' + (start.getMonth() + 1) + '.' + start.getDate()
         }
     }
@@ -111,21 +120,18 @@ const ScheduleCreate = (): JSX.Element => {
 
     // add todo
     const addTodo = () => {
-
-        // setSchedule(prev => ({
-        //     ...prev, todoList: [...prev.todoList ?? [{ title: '', start: '', end: '', type: false }], { title: '', start: '', end: '', type: true}]
-        // }));
         setSchedule(prev => {
             const updatedTodos = prev.todoList!.map(todo => ({
                 ...todo,
-                type: false
+                title: todo.title.trim() === '' ? `할 일` : todo.title,
+                handle: false
             }));
         
-            const newTodo = { title: '', start: '', end: '', type: true };
+            const newTodo = { type: 0, title: '', startTime: getNextTime().toISOString(), handle: true };
         
             const sortedTodos = [...updatedTodos, newTodo].sort((a, b) => {
-                const aTime = a.start ? new Date(a.start).getTime() : Infinity;
-                const bTime = b.start ? new Date(b.start).getTime() : Infinity;
+                const aTime = a.startTime ? new Date(a.startTime).getTime() : Infinity;
+                const bTime = b.startTime ? new Date(b.startTime).getTime() : Infinity;
                 return aTime - bTime;
             });
         
@@ -134,29 +140,98 @@ const ScheduleCreate = (): JSX.Element => {
                 todoList: sortedTodos
             };
         });
-    }
+    };
 
-    const setDefaultTitle = (todo: Todo, index: number) => {
-        if (todo.title.trim() === '') {
-            setSchedule(prev => {
-                const newTodoList = [...prev.todoList ?? []];
-                newTodoList[index] = {
-                    ...newTodoList[index],
-                    title: `할 일 ${index + 1}`
+    // delete todo
+    const deleteTodo = (index: number) => {
+        Alert.alert(
+            '알림',
+            '할일을 삭제하시겠습니까?',
+            [         
+                {
+                    text: '아니오',
+                    onPress: () => { return },
+                    style: 'cancel',
+                },{
+                    text: '예', 
+                    onPress: async (): Promise<void> => { 
+                        setSchedule(prev => {
+                            const updatedTodos = prev.todoList!.filter((_, i) => i !== index);
+                            return {
+                                ...prev,
+                                todoList: updatedTodos
+                            };
+                        });
+                    },
+                }
+            ]
+        )
+    };
+
+    // 수정할 할일 선택
+    const handleTodoModify = (index: number) => {
+        setSchedule(prev => {
+            const updatedTodos = prev.todoList!.map((todo, i) => {
+
+                return {
+                    ...todo,
+                    title: todo.title.trim() === '' ? '할 일' : todo.title,
+                    handle: i === index
                 };
-                return { ...prev, todoList: newTodoList };
             });
-        }
+            
+            return {
+                ...prev,
+                todoList: updatedTodos
+            };
+        });
     }
 
     // create schedule
     const create = async () => {
-        const payload: Payload = await createSchedule(schedule);
+        Alert.alert(
+            '알림',
+            '일정을 생성하시겠습니까?',
+            [
+                {
+                    text: '취소',
+                    onPress: () => { return },
+                    style: 'cancel',
+                },{
+                    text: '확인', 
+                    onPress: async (): Promise<void> => { 
+                        if (schedule.todoList && schedule.todoList.length > 0) {
+                            let newSchedule = schedule;
 
-        if (payload.code === 200) {
-            navigation.navigate('ScheduleIndex');
-        }
-    }   
+                            for (let i = 0; i < schedule.todoList.length; i ++) {
+                                if (schedule.todoList[i].title.trim() === '') {
+                                    const updatedTodos = [...schedule.todoList];
+                                    updatedTodos[i] = {
+                                        ...updatedTodos[i],
+                                        title: `할 일`,
+                                    };
+                                
+                                    newSchedule = {
+                                        ...schedule,
+                                        todoList: updatedTodos,
+                                    };
+                                }
+                            }
+
+                            setSchedule(newSchedule);
+
+                            const payload: Payload = await createSchedule(newSchedule);
+
+                            if (payload.code === 200) {
+                                Alert.alert('알림', '일정이 생성되었습니다.')
+                                navigation.goBack();
+                            }
+                        }
+                    },
+                }
+            ],
+        )
+    };
 
     return (
         <View style={ styles.wrapper }>
@@ -165,20 +240,20 @@ const ScheduleCreate = (): JSX.Element => {
                 <View style={[ styles.blockContainer, { paddingVertical: 0 }]}>
                     {/* title */}
                     <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
-                        <TextInput style={[ styles.title, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
+                        <TextInput style={[ styles.title, schedule.todoList && schedule.todoList.length > 0 && schedule.todoList[0].startTime !== '' && { borderBottomWidth: 0 }]} 
                             placeholder="일정 제목" placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
                             onFocus={ () => handleFocus(titleRef) } onBlur={ () => handleBlur(titleRef)} value={ schedule.title } keyboardType="default" multiline={ false }
                             onChangeText={(title: string): void => setSchedule(prev => ({ ...prev, title: title }))} onSubmitEditing={ () => handleBlur(titleRef) } />
                     </View>
 
-                    { schedule.todoList && schedule.todoList.length > 0 && schedule.todoList[0].start !== '' && (
-                        <Text style={[ styles.regularText, { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getStartTime() }</Text>
+                    { schedule.todoList && schedule.todoList.length > 0 && schedule.todoList[0].startTime !== '' && (
+                        <Text style={[ styles.regularText, { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getStartTime() }</Text>
                     )}
                     
                     {/* todolist  */}
                     { schedule.todoList && schedule.todoList.map((item: Todo, index: number) => {
                         const getTime = (item: Todo): string => {
-                            const start = new Date(item.start);
+                            const start = new Date(item.startTime);
                     
                             const formatTime = (date: Date) => {
                                 let hour = date.getHours();
@@ -195,9 +270,8 @@ const ScheduleCreate = (): JSX.Element => {
                                 return hour + ':' + (minute > 10 ? minute : '0' + minute);
                             }
                     
-                            if (item.end) {
-                                const end = new Date(item.end);
-                                console.log(end)
+                            if (item.endTime) {
+                                const end = new Date(item.endTime);
                     
                                 return formatTime(start) + ' ~ ' + formatTime(end);
                             }
@@ -205,12 +279,102 @@ const ScheduleCreate = (): JSX.Element => {
                             return formatTime(start);
                         }
 
-                        if (item.type) {
+                        const getPickedDate = (date: string, isStart: boolean) => {
+                            if (!isStart) {
+                                if (date === '') {
+                                    return '----.--.--'
+                                }
+                            }
+
+                            const time = new Date(date);
+                            const year = time.getFullYear();
+                            const month = time.getMonth() + 1;
+                            const day = time.getDate();
+
+                            return `${year}.${month}.${day}`;
+                        }
+
+                        const getPickedTime = (date: string, isStart: boolean) => {
+                            if (!isStart) {
+                                if (date === '') {
+                                    return '--.--'
+                                }
+                            }
+
+                            const time = new Date(date)
+                            let hour = time.getHours();
+                            let minute = time.getMinutes();
+                            let ampm = '오전';
+            
+                            if (dateType === 0) {
+                                ampm = hour >= 12 ? '오후' : '오전';
+                                hour = hour > 12 ? hour - 12 : 0 + hour;
+                
+                                return ampm + ' ' + hour + ':' + (minute > 10 ? minute : '0' + minute);
+                            }
+                
+                            return hour + ':' + (minute > 10 ? minute : '0' + minute);
+                        }
+
+                        const handlePress = (key: 'startTime' | 'endTime', mode: 'date' | 'time') => {
+                            setTargetKey(key);
+                            setPickerMode(mode);
+                            setShowPicker(true);
+                        };
+                    
+                        const handleChange = (_: any, selectedDate?: Date) => {
+                            setShowPicker(false);
+
+                            if (targetKey === 'endTime') {
+                                const startDate = new Date(item.startTime);
+
+                                if (selectedDate && selectedDate.getTime() < startDate.getTime()) {
+                                    Alert.alert('알림', '종료시간은 시작시간보다 이전일 수 없습니다.');
+                                    return;
+                                };
+                            };
+
+                            if (selectedDate) {
+                                if (!item.endTime) {
+                                    if (selectedDate.getMinutes() > 0) {
+                                        selectedDate.setMinutes(0);
+                                        selectedDate.setSeconds(0);
+                                        selectedDate.setMilliseconds(0);
+                                        selectedDate.setHours(selectedDate.getHours() + 1);
+                                    }
+                                }
+
+                                const isoString = selectedDate.toISOString();
+                                
+                                setSchedule(prev => {
+                                    const updatedTodos = [...prev.todoList ?? []];
+                                    updatedTodos[index] = {
+                                        ...updatedTodos[index],
+                                        [targetKey]: isoString,
+                                    };
+
+                                    const sortedTodos = updatedTodos.sort((a, b) => {
+                                        const aTime = a.startTime ? new Date(a.startTime).getTime() : Infinity;
+                                        const bTime = b.startTime ? new Date(b.startTime).getTime() : Infinity;
+
+                                        return aTime - bTime;
+                                    });
+
+                                    return {
+                                        ...prev,
+                                        todoList: sortedTodos
+                                    };
+                                });
+                            }
+                        };
+
+                        // 수정중인 할일
+                        if (item.handle) {
                             return (
                                 <View key={ index }>
                                     <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
                                         <TextInput style={[ styles.eventTitle, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
-                                            placeholder={`할 일 ${index + 1}`} placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
+                                            placeholder="할 일" placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
                                             value={ item.title } keyboardType="default" 
                                             onChangeText={(text) => {
                                                 setSchedule(prev => {
@@ -220,18 +384,25 @@ const ScheduleCreate = (): JSX.Element => {
                                                 });
                                             }} />
                                     </View>
-                                    <View style={ styles.dateContainer }>
-                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                                            <Text style={ styles.regularText }>시작</Text>
-                                        </View>
-                                        <View>
-                                            <Text></Text>
-                                        </View>
+                                    <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
+                                        <Text style={[ styles.regularText, { flex: 1 }]}>시작</Text>
+                                        <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('startTime', 'date') }>
+                                            <Text style={ styles.regularText }>{ getPickedDate(item.startTime, true) }</Text>
+                                        </Pressable>
+                                        <Pressable style={ styles.dateBtn } onPress={ () => handlePress('startTime', 'time') }>
+                                            <Text style={ styles.regularText }>{ getPickedTime(item.startTime, true) }</Text>
+                                        </Pressable>
+                                        
+                                        {/* <RNDateTimePicker mode="time" value={ new Date() } onChange={ changeDate } display="default"/> */}
                                     </View>
-                                    <View style={ styles.dateContainer }>
-                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                                            <Text style={ styles.regularText }>종료</Text>
-                                        </View>
+                                    <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
+                                        <Text style={[ styles.regularText, { flex: 1 }]}>종료</Text>
+                                        <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('endTime', 'date') }>
+                                            <Text style={ styles.regularText }>{ getPickedDate(item.endTime ?? '', false) }</Text>
+                                        </Pressable>
+                                        <Pressable style={ styles.dateBtn } onPress={ () => handlePress('endTime', 'time') }>
+                                            <Text style={ styles.regularText }>{ getPickedTime(item.endTime ?? '', false) }</Text>
+                                        </Pressable>
                                     </View>
                                     <View style={ styles.dateContainer }>
                                         <View style={[ styles.rowContainer, { flex: 1 }]}>
@@ -240,26 +411,37 @@ const ScheduleCreate = (): JSX.Element => {
                                             <Text style={ styles.regularText }>장소</Text>
                                         </View>
                                     </View>
+
+                                                       {/* show picker */}
+                                    { showPicker && (
+                                        <RNDateTimePicker
+                                            mode={ pickerMode }
+                                            value={ item[targetKey] ? new Date(item[targetKey]) : new Date() }
+                                            onChange={ handleChange }
+                                            display="default"
+                                        />
+                                    )}
                                 </View>
                             )
                         }
                         
+                        // 수정완료된 할일
                         if (schedule.todoList) {
                             return (
-                                <View style={[ styles.rowContainer, { paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]} key={ index }>
+                                <Pressable style={[ styles.rowContainer, { paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]} key={ index } onPress={ () => handleTodoModify(index) }>
                                     <View style={[ styles.rowContainer, { flex: 1 }]}>
-                                        { index === 0 && <TodoStart style={ styles.todoIcon } /> }
-                                        { index === schedule.todoList.length - 1 && <TodoEnd style={ styles.todoIcon } /> }
-                                        { index > 0 && index < schedule.todoList.length - 1 &&  <TodoCommon style={ styles.todoIcon } /> }
-    
+                                        <Pressable onPress={ () =>  deleteTodo(index) }>
+                                            <TodoDelete style={ styles.todoIcon } /> 
+                                        </Pressable>
+                                        
                                         <Text style={[ styles.regularText, { letterSpacing: -0.5 } ]}>{ item.title }</Text>
                                     </View>
                                     <Text style={[ styles.regularText, { fontSize: 14, letterSpacing: -0.5 }]}>{ getTime(item) }</Text>
-                                </View>
+                                </Pressable>
                             )
                         }
                     })}
-
+                    
                     {/* Event add button */}
                     <Pressable style={ styles.button } onPress={ addTodo }>
                         <View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
@@ -276,6 +458,7 @@ const ScheduleCreate = (): JSX.Element => {
                     ) : (
                         <View style={{ marginBottom: 20 }}></View>
                     )}
+                
                 </View>
             </ScrollView>
         </View>
@@ -349,6 +532,7 @@ const styles = StyleSheet.create({
     blockContainer: {
         marginTop: 20,
         padding: 20,
+        marginBottom: 150,
 
         borderRadius: 10,
         backgroundColor: '#ffffff'
@@ -382,6 +566,13 @@ const styles = StyleSheet.create({
     },
     todoIcon: {
         marginRight: 10
+    },
+    dateBtn: {
+        paddingHorizontal: 15,
+        paddingVertical: 7,
+
+        borderRadius: 10,
+        backgroundColor: '#f5f5f5'
     },
     button: {
 		padding: 20,

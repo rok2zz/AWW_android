@@ -3,8 +3,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 // RootStack
 export type RootStackParamList = {
 	MainTab: undefined,
-	Home: undefined,
-	Test: undefined,
 	AlarmSetting: undefined,
     AlarmScreen: undefined
 }
@@ -14,9 +12,12 @@ export type RootStackNavigationProp = NativeStackNavigationProp<RootStackParamLi
 
 // MainTab
 export type MainTabParamList = {
-	Search: undefined,
+	Home: undefined,
+	Search: {
+		before?: string
+	},
 	Alarm: undefined,
-	Schedule: undefined,
+	ScheduleStack: undefined,
 	Routine: undefined,
 	Setting: undefined
 }

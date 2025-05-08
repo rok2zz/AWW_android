@@ -11,6 +11,7 @@ import Schedule from "../../assets/imgs/tabBar/icon_schedule.svg"
 import Routine from "../../assets/imgs/tabBar/icon_routine.svg"
 import Setting from "../../assets/imgs/tabBar/icon_setting.svg"
 import Search from "../../assets/imgs/tabBar/icon_search.svg"
+import Home from "../../assets/imgs/tabBar/icon_home.svg"
 
 const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JSX.Element => {    
     const rootNavigation = useNavigation<RootStackNavigationProp>()
@@ -58,13 +59,22 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
                                     { index === 0 && 
                                         <>
                                             { isFocused ? (
+                                                <Home style={ styles.icon } width={ 30 } height={ 30 } /> 
+                                                ) : (
+                                                <Home style={ styles.icon } width={ 30 } height={ 30 } /> 
+                                            )}
+                                        </>
+                                    }
+                                    { index === 1 && 
+                                        <>
+                                            { isFocused ? (
                                                 <Search style={ styles.icon } width={ 30 } height={ 30 } /> 
                                                 ) : (
                                                 <Search style={ styles.icon } width={ 30 } height={ 30 } /> 
                                             )}
                                         </>
                                     }   
-                                    { index === 1 && 
+                                    { index === 2 && 
                                         <>
                                             { isFocused ? (
                                                 <Alarm style={ styles.icon } width={ 30 } height={ 30 } /> 
@@ -73,24 +83,24 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
                                             )}
                                         </>
                                     }    
-                                    { index === 2 && 
-                                        <>
-                                            { isFocused ? (
-                                                <Schedule style={ styles.icon } width={ 30 } height={ 30 } /> 
-                                            ) : (
-                                                <Schedule style={ styles.icon } width={ 30 } height={ 30 } /> 
-                                            )} 
-                                        </>
-                                    }   
                                     { index === 3 && 
                                         <>
                                             { isFocused ? (
+                                                <Schedule style={ styles.icon } width={ 30 } height={ 30 } /> 
+                                            ) : (
+                                                <Schedule style={ styles.icon } width={ 30 } height={ 30 } /> 
+                                            )} 
+                                        </>
+                                    }   
+                                    {/* { index === 3 && 
+                                        <>
+                                            { isFocused ? (
                                                 <Routine style={ styles.icon } width={ 30 } height={ 30 } /> 
                                             ) : (
                                                 <Routine style={ styles.icon } width={ 30 } height={ 30 } /> 
                                             )} 
                                         </>
-                                    }   
+                                    }    */}
                                     { index === 4 && 
                                         <>
                                             { isFocused ? (
@@ -100,10 +110,10 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
                                             )} 
                                         </>
                                     }   
-                                    { index === 0 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>검색</Text> }
-                                    { index === 1 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>알람</Text> }
-                                    { index === 2 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>일정</Text> }
-                                    { index === 3 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>루틴</Text> }
+                                    { index === 0 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>홈</Text> }
+                                    { index === 1 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>검색</Text> }
+                                    { index === 2 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>알람</Text> }
+                                    { index === 3 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>일정</Text> }
                                     { index === 4 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>설정</Text> }
                                 </View>
                             </Pressable>

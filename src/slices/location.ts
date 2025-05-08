@@ -7,6 +7,13 @@ export interface FavoriteLocation {
     longitude: number
 }
 
+export interface Location {
+    name: string,
+    lat: number,
+    lon: number,
+    locationKey: string
+}
+
 interface LocationState {
     favoriteLocation: FavoriteLocation[]
 }

@@ -7,13 +7,14 @@ import Location from "../../../../../assets/imgs/schedule/icon_location_mark.svg
 import Sunny from "../../../../../assets/imgs/weather/icon_sunny.svg"
 import TopTabBar from "../../../../../components/tabBar/TopTabBar";
 import { ScheduleNavigationProp } from "../../../../../types/stack";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Schedule } from "../../../../../slices/schedule";
 import { useCurrentScheduleList, usePastScheduleList, useSchedule } from "../../../../../hooks/useSchedule";
 import { Payload } from "../../../../../types/api";
 
 const ScheduleIndex = (): JSX.Element => {
     const navigation = useNavigation<ScheduleNavigationProp>();
+    const isFocused = useIsFocused();
     const { getScheduleList } = useSchedule();
     const [tabType, setTabType] = useState<number>(0); // 0: 현재 일정, 1: 종료된 일정
     const dateType: number = 0; // 0: 12시간제, 1: 24시간제
@@ -21,8 +22,10 @@ const ScheduleIndex = (): JSX.Element => {
     const pastScheduleList: Schedule[] = usePastScheduleList();
 
     useEffect(() => {
-        getSchedule();
-    }, []);
+        if (isFocused) {
+            getSchedule();
+        }
+    }, [isFocused]);
 
     // get Schedule list
     const getSchedule = async (): Promise<void> => {

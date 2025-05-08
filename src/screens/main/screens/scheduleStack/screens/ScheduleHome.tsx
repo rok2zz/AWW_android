@@ -20,7 +20,7 @@ import { Payload } from '../../../../../types/api';
 
 
 const ScheduleHome = (): React.JSX.Element => {
-    const navigation = useNavigation<ScheduleNavigationProp>()
+    const scheduleNavigation = useNavigation<ScheduleNavigationProp>()
 	const { getMainScheduleList } = useSchedule();
 	const androidId: string = useAndroidId();
 	const isFocused: boolean = useIsFocused();
@@ -184,7 +184,7 @@ const ScheduleHome = (): React.JSX.Element => {
 					<View style={[ styles.contents, { marginBottom: 150 }]}>
 						<View style={ styles.rowContainer }>
 							<Text style={[ styles.regularText, { flex: 1 }]}>일정</Text>
-							<Pressable onPress={ () => navigation.navigate('ScheduleIndex') }>
+							<Pressable onPress={ () => scheduleNavigation.push('ScheduleIndex') }>
 								<Text style={[ styles.regularText, { fontSize: 12 }]}>더 보기 +</Text>
 							</Pressable>
 						</View>
@@ -201,7 +201,7 @@ const ScheduleHome = (): React.JSX.Element => {
 
 								if (index < 5 && item.status == 1) {
 									return (
-										<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) } key={ index }>
+										<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => scheduleNavigation.push('ScheduleDetail', { id: item.id ?? 0 }) } key={ index }>
 											<View style={[ styles.rowContainer, { padding: 20 }]}>
 												<Text style={[ styles.regularText, { flex: 1, fontSize: 16 }]}>{ item.title }</Text>
 												<Text style={[ styles.regularText, { fontSize: 14, color: 'rgba(255, 255, 255, 0.5)'} ]}>{ getTime(item.earliestStart ?? '') }</Text>
@@ -211,7 +211,7 @@ const ScheduleHome = (): React.JSX.Element => {
 								}
 							})}
 						</View>
-						<Pressable style={[ styles.contents, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]} onPress={ () => navigation.navigate('ScheduleCreate') }>
+						<Pressable style={[ styles.contents, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]} onPress={ () => scheduleNavigation.push('ScheduleCreate') }>
 							<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
 								<ScheduleAdd style={{ marginRight: 10 }} />
 								<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>
@@ -219,7 +219,7 @@ const ScheduleHome = (): React.JSX.Element => {
 						</Pressable>
 					</View>
 				) : (
-					<Pressable style={[ styles.contents, { marginBottom: 150 }]} onPress={ () => navigation.navigate('ScheduleCreate') }>
+					<Pressable style={[ styles.contents, { marginBottom: 150 }]} onPress={ () => scheduleNavigation.push('ScheduleCreate') }>
 						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
 							<ScheduleAdd style={{ marginRight: 10 }} />
 							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>

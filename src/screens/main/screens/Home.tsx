@@ -1,244 +1,305 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Linking, PermissionsAndroid, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useApi } from '../../../hooks/useApi';
-import Geolocation from '@react-native-community/geolocation';
-import notifee, { AndroidImportance, IntervalTrigger, TimestampTrigger, TimeUnit, TriggerType } from '@notifee/react-native';
-import Tts from 'react-native-tts';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, Image, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import Swiper from 'react-native-swiper';
+import { MainTabNavigationProp, RootStackNavigationProp, ScheduleNavigationProp } from '../../../types/stack';
+import { useSchedule } from '../../../hooks/useSchedule';
+import { useAndroidId } from '../../../hooks/useAuth';
+import { FavoriteLocation } from '../../../slices/location';
+import { FavoriteWeather } from '../../../slices/weather';
+import { Schedule } from '../../../slices/schedule';
+import { Payload } from '../../../types/api';
 
-interface Location {
-	lattitude: number,
-	longitude: number
-}
+// svg
+import Dot from "../../../assets/imgs/common/paging_dot.svg"
+import ActiveDot from "../../../assets/imgs/common/paging_active_dot.svg"
+import FilledStar from "../../../assets/imgs/schedule/icon_filled_star.svg"
+import Plus from "../../../assets/imgs/schedule/icon_plus.svg"
+import ScheduleAdd from "../../../assets/imgs/schedule/icon_schedule_add.svg"
+import Sunny from "../../../assets/imgs/weather/icon_sunny.svg"
 
-const Home = (): React.JSX.Element => {
-	const { getApi } = useApi()
 
-	const [location, setLocation] = useState<Location>({ lattitude: 0,longitude: 0 })
+
+const ScheduleHome = (): React.JSX.Element => {
+    const tabNavigation = useNavigation<MainTabNavigationProp>();
+	const { getMainScheduleList } = useSchedule();
+	const androidId: string = useAndroidId();
+	const isFocused: boolean = useIsFocused();
+
+	const [favoriteLocation, setFavoriteLocation] = useState<FavoriteLocation[]>([{ key: '1', lattitude: 1, longitude: 1 },{ key: '1', lattitude: 1, longitude: 1 }])
+	const [weather, setWeather] = useState<any>({
+		key: '5',
+		lattitude: 1,
+		longitude: 1,
+		location: '서울 압구정동',
+		status: '맑음',
+		temperature: 21,
+		lowest: 8,
+		highest: 23,
+		dust: '매우 좋음',
+	})
+	const [favoriteWeather, setFavoriteWeather] = useState<FavoriteWeather[]>([
+		{
+			key: '1',
+			lattitude: 1,
+			longitude: 1,
+			location: '서울 신사동',
+			status: '맑음',
+			temperature: 15,
+			lowest: 8,
+			highest: 16,
+			dust: '매우 나쁨'
+		},
+		{
+			key: '2',
+			lattitude: 1,
+			longitude: 1,
+			location: '인천 삼산동',
+			status: '맑음',
+			temperature: 18,
+			lowest: 8,
+			highest: 16,
+			dust: '매우 나쁨'
+		},
+	])	
+	const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
+
 
 	useEffect(() => {
-		getGeolocation()
-	}, [])
-
-	useEffect(() => {
-		console.log(location)
-	}, [location])
-
-	const testTTS = () => {
-		// Tts.setDefaultLanguage('ko-KR');
-		Tts.setDefaultVoice('ko-kr-x-kob-local');
-
-		Tts.speak('안녕하세요 티티에스입니다');
-	}
-
-
-	const getGeolocation = async () => {
-		if (Platform.OS === 'android') {
-			const granted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-			console.log(granted);
-
-			if (granted) {
-				console.log('permission granted');
-			} else {
-				console.log('permission denied');
-				try {
-					const granted = await PermissionsAndroid.request(
-					  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-					  {
-						title: '권한 요청',
-						message: '권한이 필요합니다.',
-						buttonNeutral: '나중에 묻기',
-						buttonNegative: '취소',
-						buttonPositive: '허용',
-					  },
-					);
-					if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-					} else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-						console.log('❌권한 요청을 차단했습니다.');
-						openAppSettings();
-					} else {
-					  console.log('Camera permission denied');
-					}
-				  } catch (err) {
-					console.warn(err);
-				  }
-			}
-		} else {
-			Geolocation.requestAuthorization();
+		if (androidId && isFocused) {
+			getMainSchedule();
 		}
+	}, [isFocused, androidId]);
 
-		Geolocation.getCurrentPosition(
-			(position) => {
-			//   console.log('위치 정보:', position);
-			  setLocation({ lattitude: position.coords.latitude, longitude: position.coords.longitude })
-			},
-			(error) => {
-			//   console.error('위치 정보를 가져오는 중 오류 발생:', error);
-			},
-			{ enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-		  );
-	}
+	const getMainSchedule = async () => {
+		const payload: Payload = await getMainScheduleList('test001');
 
-	const openAppSettings = () => {
-		Alert.alert(
-			"알림 권한 필요",
-			"앱에서 알림을 받으려면 설정에서 권한을 허용해주세요.",
-			[
-				{ text: "취소", style: "cancel" },
-				{ text: "설정으로 이동", onPress: () => Linking.openSettings() }
-			]
-		);
-	};
-
-	const checkPermissions = async () => {
-		if (Platform.OS === 'ios') {
-			// requestMultiple([PERMISSIONS.IOS.NOTIFICATIONS]).then((statuses) => {
-			// })
-		} else if (Platform.OS === 'android') {
-			const grantedNotification= await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-			if (grantedNotification) {
-				console.log('Notification permission granted');
-			} else {
-				console.log('Notification permission denied');
-				try {
-					const granted = await PermissionsAndroid.request(
-					  PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-					  {
-						title: '권한 요청',
-						message: '권한이 필요합니다.',
-						buttonNeutral: '나중에 묻기',
-						buttonNegative: '취소',
-						buttonPositive: '허용',
-					  },
-					);
-					if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-					  console.log('You can use the notification');
-					} else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-						console.log('❌ 사용자가 알림 권한 요청을 차단했습니다.');
-						openAppSettings();
-					} else {
-					  console.log('Camera permission denied');
-					}
-				  } catch (err) {
-					console.warn(err);
-				  }
-			}
-
-
+		if (payload.code === 200) {
+			setScheduleList(payload.scheduleList ?? [])
 		}
-	}
-
-	const createScheduledNotification = async () => {
-		const date = new Date(Date.now());
-		date.setMinutes(date.getMinutes() + 1);
-		date.setSeconds(0);
-		
-		const channelId = await notifee.createChannel({
-			id: 'default',
-			name: 'Default Channel',
-		  });
-		// Trigger를 정의한다
-		const trigger: TimestampTrigger = {
-		  type: TriggerType.TIMESTAMP, // Interval과 Timestamp 중 선택
-		  timestamp: date.getTime(), // 언제 알림을 띄울 것인지 시간 설정
-		};
-		  
-		const date2 = new Date(trigger.timestamp)
-		console.log(trigger.timestamp)
-		console.log(date2)
-		
-		// Trigger Notification을 생성한다
-		const triggerId = await notifee.createTriggerNotification(
-		  {
-			title: 'title',
-			body: 'body',
-			android: {
-			  channelId: 'default',
-			},
-		  },
-		  trigger,
-		);
 	};
-
-	const display = async () => {
-		// Request permissions (required for iOS)
-		if (Platform.OS === 'ios') {
-			await notifee.requestPermission();
-		} else if (Platform.OS === 'android') {	
-			checkPermissions();
-		};
-
-		// Create a channel (required for Android)
-		const channelId = await notifee.createChannel({
-			id: 'test',
-			name: 'test Channel',
-			importance: AndroidImportance.HIGH,
-			sound: 'default',
-			vibration: true
-		});
-
-
-		// Display a notification
-		await notifee.displayNotification({
-			title: 'Notification Title',
-			body: 'Main body content of the notification222',
-			android: {
-				channelId,
-				// smallIcon: 'name-of-a-small-icon', // optional, defaults to 'ic_launcher'.
-				// pressAction is needed if you want the notification to open the app when pressed
-				pressAction: {
-					id: 'test',
-				},
-			},
-		});
-	}
-
-	const getTrigger = async () => {
-		// await notifee.cancelTriggerNotifications()
-		const triggerNotifications = await notifee.getTriggerNotifications();
-		console.log(triggerNotifications[0]);
-	}
-
-	const cancelTrigger = async () => {
-		await notifee.cancelTriggerNotifications()
-
-	}
-	const cancel = async () => {
-		await notifee.deleteChannel('test');
-	}
 
 	return (
-		<View>
-			<Pressable style={ styles.button } onPress={ () => createScheduledNotification() }>
-				<Text>팝업 예약</Text>
-			</Pressable>
-			<Pressable style={ styles.button } onPress={ () => display() }>
-				<Text>팝업 요청</Text>
-			</Pressable>
-			<Pressable style={ styles.button2 } onPress={ () => getTrigger() }>
-				<Text>트리거 확인</Text>
-			</Pressable>
-			<Pressable style={ styles.button2 } onPress={ () => cancelTrigger() }>
-				<Text>트리거 제거</Text>
-			</Pressable>
-			<Pressable style={ styles.button2 } onPress={ () => cancel() }>
-				<Text>채널 제거</Text>
-			</Pressable>
+		<View style={ styles.wrapper }>
+			<ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
+				{/* marked area */}
+				{ favoriteWeather && favoriteWeather.length > 0 ? (
+					<View style={[ styles.contents, { padding: 0, height: 160 }]}>
+						<Swiper
+							style={{ height: 150 }}
+							paginationStyle={{ marginBottom: -10 }}
+							dot={ <Dot style={{ marginHorizontal: 3 }} /> }
+							activeDot={ <ActiveDot style={{ marginHorizontal: 3 }} /> }
+							loop={ true }
+						>
+							{ favoriteWeather.map((item: any, index: number) => {
+
+								if (index < 3) {
+									return (
+										<Pressable style={ styles.swiperContainer } key={ index } onPress={ () => console.log('asdf')}>
+											<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
+												<View style={[ styles.rowContainer, { flex: 1 }]}>
+													<FilledStar style={ styles.icon } />
+													<Text style={ styles.boldText }>{ item.location }</Text>
+												</View>
+												<View style={ styles.rowContainer }>
+													<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
+													<Text style={[ styles.regularText, { color: 'red' }]}>{ item.dust }</Text>
+												</View>
+											</View>
+
+											<View style={ styles.rowContainer }>
+												<View style={[ styles.rowContainer, { flex: 1 }]}>
+													<Sunny style={ styles.icon } />
+													<Text style={ styles.ExtraBoldText }>{ item.temperature }</Text>
+												</View>
+												<View>
+													<Text style={ styles.regularText }>{ item.status }</Text>
+													<Text style={ styles.regularText }>최저 { item.lowest }° / 최고 { item.highest }°</Text>	
+												</View>
+											</View>
+										</Pressable>
+									)
+								}
+							})}
+						</Swiper>
+					</View>
+				) : (
+					<Pressable style={ styles.contents }>
+						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
+							<Plus style={{ marginRight: 10 }} />
+							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>즐겨찾는 위치 추가</Text>
+						</View>
+					</Pressable>
+				)}
+
+
+				{/* current area */}
+				{ weather && (
+					<Pressable style={ styles.contents }>
+						<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
+							<View style={[ styles.rowContainer, { flex: 1 }]}>
+								<FilledStar style={ styles.icon } />
+								<Text style={ styles.boldText }>{ weather.location }</Text>
+							</View>
+							<View style={ styles.rowContainer }>
+								<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
+								<Text style={[ styles.regularText, { color: 'red' }]}>{ weather.dust }</Text>
+							</View>
+						</View>
+
+						<View style={[ styles.rowContainer, { paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#cccccc' }]}>
+							<View style={[ styles.rowContainer, { flex: 1 }]}>
+								<Sunny style={ styles.icon } />
+								<Text style={ styles.ExtraBoldText }>{ weather.temperature }°</Text>
+							</View>
+							<View>
+								<Text style={ styles.regularText }>맑음</Text>
+								<Text style={ styles.regularText }>최저 { weather.lowest }° / 최고 { weather.highest }°</Text>	
+							</View>
+						</View>
+
+						<ScrollView style={{ marginTop: 20 }} horizontal showsHorizontalScrollIndicator={ false }>
+							{ Array.from({length: 10 }, (_, i) => i).map((index: number) => {
+								return (
+									<View  key={ index }>
+										<View style={ styles.hourlyWeather }>
+											<Text style={[ styles.regularText, { fontSize: 12 }]}>오후 12시</Text>
+											<Text style={[ styles.regularText, { fontSize: 12 }]}>오후 12시</Text>
+											<Text style={[ styles.regularText, { fontSize: 12 }]}>오후 12시</Text>
+										</View>
+									</View>
+								)
+							})}
+						</ScrollView>
+					</Pressable>
+				)}
+
+				{/* news */}
+				{/* <View style={ styles.contents }>
+
+				</View> */}
+
+				{/* schedule */}
+				{ scheduleList && scheduleList.length > 0 ? (
+					<View style={[ styles.contents, { marginBottom: 150 }]}>
+						<View style={ styles.rowContainer }>
+							<Text style={[ styles.regularText, { flex: 1 }]}>일정</Text>
+							<Pressable onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleIndex' }) }>
+								<Text style={[ styles.regularText, { fontSize: 12 }]}>더 보기 +</Text>
+							</Pressable>
+						</View>
+						<View style={ styles.scheduleContainer }>
+							{ scheduleList && scheduleList.length > 0 && scheduleList.map(( item: Schedule, index: number ) => {
+								const getTime = (date: string): string => {
+									const start = new Date(date);
+									const hour = start.getHours();
+									const minute = start.getMinutes();
+									const days = ['일', '월', '화', '수', '목', '금', '토'];
+
+									return `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]}) ${hour < 10 ? '0' + hour : hour }:${minute < 10 ? '0' + minute : minute}`;
+								}
+
+								if (index < 5 && item.status == 1) {
+									return (
+										<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'Detail', id: item.id }) } key={ index }>
+											<View style={[ styles.rowContainer, { padding: 20 }]}>
+												<Text style={[ styles.regularText, { flex: 1, fontSize: 16 }]}>{ item.title }</Text>
+												<Text style={[ styles.regularText, { fontSize: 14, color: 'rgba(255, 255, 255, 0.5)'} ]}>{ getTime(item.earliestStart ?? '') }</Text>
+											</View>
+										</Pressable>
+									)
+								}
+							})}
+						</View>
+						<Pressable style={[ styles.contents, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleCreate' }) }>
+							<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
+								<ScheduleAdd style={{ marginRight: 10 }} />
+								<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>
+							</View>
+						</Pressable>
+					</View>
+				) : (
+					<Pressable style={[ styles.contents, { marginBottom: 150 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleCreate' }) }>
+						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
+							<ScheduleAdd style={{ marginRight: 10 }} />
+							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>
+						</View>
+					</Pressable>
+				)}
+				
+			</ScrollView>
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
+	wrapper: {
+		flex: 1,
+	},
 	container: {
-	
+		marginHorizontal: 20,
 	},
-	button: {
+	contents: {
 		padding: 20,
-		backgroundColor: 'orange',
+		marginTop: 20,
+
+		borderRadius: 10,
+
+		backgroundColor: 'rgba(0, 0, 0, 0.5)',
 	},
-	button2: {
+	rowContainer: {
+		flexDirection: 'row',
+		alignItems: 'center',
+	},
+	swiperContainer: {
 		padding: 20,
-		backgroundColor: 'green',
-	}  
+	},
+	icon: {
+		width: 50,
+		height: 50,
+		
+		marginRight: 5
+	},
+	miniIcon: {
+		width: 40,
+		height: 40
+	},
+	ExtraBoldText: {
+		includeFontPadding: false,
+        fontSize: 60,
+        fontFamily: 'NotoSansKR-ExtraBold',
+
+        color: '#ffffff'
+	},
+	boldText: {
+		includeFontPadding: false,
+        fontSize: 20,
+        fontFamily: 'NotoSansKR-Bold',
+
+        color: '#ffffff'
+	},
+	regularText: {
+		includeFontPadding: false,
+        fontSize: 20,
+        fontFamily: 'NotoSansKR-Regular',
+
+        color: '#ffffff'
+	},
+	hourlyWeather: {
+		alignItems: 'center',
+		marginRight: 15,
+	},
+	scheduleContainer: {
+		marginTop: 20,
+		
+		borderRadius: 10,
+		backgroundColor: 'rgba(255, 255, 255, 0.1)',
+	},
+	scheduleList: {
+		borderBottomWidth: 1,
+		borderBottomColor: 'rgba(255, 255, 255, 0.25)',
+	}
 })
 
-export default Home;
+export default ScheduleHome;

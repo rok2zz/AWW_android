@@ -19,6 +19,7 @@ import SelectedLocation from "../../../../../assets/imgs/schedule/icon_location_
 import Location from "../../../../../assets/imgs/schedule/icon_location_non_selected.svg"
 import EventAdd from "../../../../../assets/imgs/schedule/icon_event_add.svg"
 import TodoDelete from "../../../../../assets/imgs/schedule/icon_todo_delete.svg"
+import TodoModify from "../../../../../assets/imgs/schedule/icon_todo_modify.svg"
 
 interface ToggleProps {
     value: boolean,
@@ -522,8 +523,10 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                         if (item.handle) {
                                             return (
                                                 <View key={ index }>
-                                                    <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
-                                                        <TextInput style={[ styles.eventTitle, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
+                                                    <View style={[ styles.dateContainer, { paddingVertical: 0, borderBottomWidth: 0 }]}>
+                                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                                            <TodoModify style={{ marginRight: 15 }} />
+                                                            <TextInput style={[ styles.eventTitle, { borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]} 
                                                             placeholder="할 일" placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
                                                             value={ item.title } keyboardType="default"  scrollEnabled={ false } multiline={ false }
                                                             onChangeText={(text) => {
@@ -533,34 +536,42 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                                                     return { ...prev, todoList: newList };
                                                                 });
                                                             }} />
-                                                    </View>
-                                                    <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
-                                                        <Text style={[ styles.regularText, { flex: 1 }]}>시작</Text>
-                                                        <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('startTime', 'date') }>
-                                                            <Text style={ styles.regularText }>{ getPickedDate(item.startTime, true) }</Text>
-                                                        </Pressable>
-                                                        <Pressable style={ styles.dateBtn } onPress={ () => handlePress('startTime', 'time') }>
-                                                            <Text style={ styles.regularText }>{ getPickedTime(item.startTime, true) }</Text>
-                                                        </Pressable>
+                                                            <Pressable onPress={ () => deleteTodo(index) }>
+                                                                <TodoDelete />
+                                                            </Pressable>
+                                                        </View>
                                                         
-                                                        {/* <RNDateTimePicker mode="time" value={ new Date() } onChange={ changeDate } display="default"/> */}
                                                     </View>
-                                                    <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
-                                                        <Text style={[ styles.regularText, { flex: 1 }]}>종료</Text>
-                                                        <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('endTime', 'date') }>
-                                                            <Text style={ styles.regularText }>{ getPickedDate(item.endTime ?? '', false) }</Text>
-                                                        </Pressable>
-                                                        <Pressable style={ styles.dateBtn } onPress={ () => handlePress('endTime', 'time') }>
-                                                            <Text style={ styles.regularText }>{ getPickedTime(item.endTime ?? '', false) }</Text>
-                                                        </Pressable>
-                                                    </View>
-                                                    <View style={ styles.dateContainer }>
-                                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                                                            { item.location ? <SelectedLocation style={ styles.icon } /> : <Location style={ styles.icon } /> }
-                                                        
-                                                            <Text style={ styles.regularText }>장소</Text>
+                                                    <View style={{ marginLeft: 40 }}>
+                                                        <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
+                                                            <Text style={[ styles.regularText, { flex: 1 }]}>시작</Text>
+                                                            <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('startTime', 'date') }>
+                                                                <Text style={ styles.regularText }>{ getPickedDate(item.startTime, true) }</Text>
+                                                            </Pressable>
+                                                            <Pressable style={ styles.dateBtn } onPress={ () => handlePress('startTime', 'time') }>
+                                                                <Text style={ styles.regularText }>{ getPickedTime(item.startTime, true) }</Text>
+                                                            </Pressable>
+                                                            
+                                                            {/* <RNDateTimePicker mode="time" value={ new Date() } onChange={ changeDate } display="default"/> */}
+                                                        </View>
+                                                        <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
+                                                            <Text style={[ styles.regularText, { flex: 1 }]}>종료</Text>
+                                                            <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('endTime', 'date') }>
+                                                                <Text style={ styles.regularText }>{ getPickedDate(item.endTime ?? '', false) }</Text>
+                                                            </Pressable>
+                                                            <Pressable style={ styles.dateBtn } onPress={ () => handlePress('endTime', 'time') }>
+                                                                <Text style={ styles.regularText }>{ getPickedTime(item.endTime ?? '', false) }</Text>
+                                                            </Pressable>
+                                                        </View>
+                                                        <View style={ styles.dateContainer }>
+                                                            <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                                                { item.location ? <SelectedLocation style={ styles.icon } /> : <Location style={ styles.icon } /> }
+                                                            
+                                                                <Text style={ styles.regularText }>장소</Text>
+                                                            </View>
                                                         </View>
                                                     </View>
+                                                   
 
                                                                     {/* show picker */}
                                                     { showPicker && (

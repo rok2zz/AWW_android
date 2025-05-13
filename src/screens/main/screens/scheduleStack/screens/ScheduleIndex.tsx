@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 
 // svg
 import Location from "../../../../../assets/imgs/schedule/icon_location_mark.svg"
-import Sunny from "../../../../../assets/imgs/weather/icon_sunny.svg"
 import TopTabBar from "../../../../../components/tabBar/TopTabBar";
 import { ScheduleNavigationProp } from "../../../../../types/stack";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
@@ -98,7 +97,6 @@ const ScheduleIndex = (): JSX.Element => {
         
                                                 { item.temperature !== undefined && (
                                                     <View style={ styles.rowContainer }>
-                                                        <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
                                                         <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
                                                     </View>
                                                 )}
@@ -127,7 +125,6 @@ const ScheduleIndex = (): JSX.Element => {
 
                                                 { item.temperature !== undefined && (
                                                     <View style={ styles.rowContainer }>
-                                                        <Sunny style={{ marginRight: 5 }} width={ 30 } height={ 30 } />
                                                         <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
                                                     </View>
                                                 )}

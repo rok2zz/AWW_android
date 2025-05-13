@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { useEffect } from "react"
 import { ScheduleStackParamList } from "../../../../types/stack"
 import ScheduleDetail from "./screens/ScheduleDetail"
-import ScheduleHome from "./screens/ScheduleHome"
 import ScheduleIndex from "./screens/ScheduleIndex"
 import ScheduleCreate from "./screens/ScheduleCreate"
 

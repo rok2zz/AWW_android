@@ -1,4 +1,5 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { Weather } from "../slices/weather"
 
 // RootStack
 export type RootStackParamList = {
@@ -12,7 +13,7 @@ export type RootStackNavigationProp = NativeStackNavigationProp<RootStackParamLi
 
 // MainTab
 export type MainTabParamList = {
-	Home: undefined,
+	HomeStack: undefined,
 	Search: {
 		before?: string
 	},
@@ -24,6 +25,16 @@ export type MainTabParamList = {
 
 export type MainTabScreenName = keyof MainTabParamList
 export type MainTabNavigationProp = NativeStackNavigationProp<MainTabParamList>
+
+export type HomeStackParamList = {
+	Home: undefined,
+	WeatherDetail: {
+		weather: Weather
+	},
+}
+
+export type HomeStackScreenName = keyof HomeStackParamList
+export type HomeStackNavigationProp = NativeStackNavigationProp<HomeStackParamList>
 
 export type ScheduleStackParamList = {
 	ScheduleHome: undefined,

@@ -6,6 +6,7 @@ import { RootState } from "../slices";
 import { saveCurrentScheduleList, savePastScheduleList, Schedule, Todo } from "../slices/schedule";
 import { bindActionCreators } from "@reduxjs/toolkit";
 import { useMemo } from "react";
+import { renameKeys } from "./funcions";
 
 interface ScheduleHook {
     getMainScheduleList: (userId: string) => Promise<Payload>,
@@ -31,19 +32,7 @@ export const usePastScheduleList = (): Schedule[] => {
     return useSelector((state: RootState) => state.schedule.pastScheduleList);
 }
 
-// 변수명 변경
-const renameKeys = (obj: any, keyMap: any): any => {
-    if (Array.isArray(obj)) {
-      return obj.map(item => renameKeys(item, keyMap));
-    } else if (obj !== null && typeof obj === 'object') {
-      return Object.entries(obj).reduce((acc, [key, value]) => {
-        const newKey = keyMap[key] || key;
-        acc[newKey] = renameKeys(value, keyMap);
-        return acc;
-      }, {} as any);
-    }
-    return obj;
-};
+
 
 export const useSchedule = (): ScheduleHook => {
     const { saveCurrentScheduleList, savePastScheduleList } = useScheduleActions()
@@ -187,7 +176,6 @@ export const useSchedule = (): ScheduleHook => {
             }
         } catch (error: any) {
             errorHandler(error)
-            console.log('error')
         }
 
         const payload: Payload = {

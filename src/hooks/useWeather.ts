@@ -1,40 +1,66 @@
 import { Alert } from "react-native";
 import axios from "axios";
 import { Payload } from "../types/api";
+import { useDispatch, useSelector } from "react-redux";
+import { Weather, saveCurrentWeather, saveFavoriteLocationWeather, saveLastUpdateWeather } from "../slices/weather";
+import { bindActionCreators } from "@reduxjs/toolkit";
+import { useMemo } from "react";
+import { RootState } from "../slices";
+import { renameKeys } from "./funcions";
 
 interface JsonsHook {
     searchLocation: (text: string, offset: number) => Promise<Payload>,
-    getMainWeather: (lattitude: number, longitude: number) => Promise<Payload>,
-    getApi2: (lattitude: number, longitude: number) => Promise<Payload>,
+    getWeather: (lattitude: number, longitude: number, type: number) => Promise<Payload>,
+}
+
+export const useWeatherActions = () => {
+    const dispatch = useDispatch();
+
+    return useMemo(() => bindActionCreators({ saveCurrentWeather, saveFavoriteLocationWeather, saveLastUpdateWeather }, dispatch), [ dispatch ]);
+}
+
+export const useFavoriteLocationWeather = (): Weather[] | undefined => {
+    return useSelector((state: RootState) => state.weather.favoriteLocationWeather);
+}
+
+export const useCurrentWeather = (): Weather => {
+    return useSelector((state: RootState) => state.weather.currentWeather);
+}
+
+export const useLastUpdateWeather = (): string => {
+    return useSelector((state: RootState) => state.weather.lastUpdateWeather);
 }
 
 export const useWeather = (): JsonsHook => {
     const language: string = 'ko-kr'
     const temperatureScale: string = 'celsius' // F: metric
+    const { saveCurrentWeather } = useWeatherActions()
 
     // search location
     const searchLocation = async (text: string, offset: number): Promise<Payload> => {
+        const keyMap: Record<string, string> = {
+            address_name: 'locationName',
+            x: 'lon',
+            y: 'lat',
+        };
 
         try {
-            const res: any = await axios.post(`http://192.168.1.7:5000/api/weather/searchLocationByText`, {
-                text: text,
-                offset: offset,
-                language: 'ko-kr'
-            })
-
-            if (res.data.code !== 200) {
-                const payload: Payload = {
-                    code: res.data.code ?? -1,
-                    msg: '서버에 연결할 수 없습니다.'
+            const res: any = await axios.get(
+                `https://dapi.kakao.com/v2/local/search/address.json?query=${text}`,
+                {
+                    headers: {
+                        Authorization: 'KakaoAK 4f0389970c58fb3c2cbaae4a0a2445e3'
+                    },
                 }
+            );
 
-                return payload
-            }
 
-            if (res.data.locationList) { 
+            if (res.data.documents) { 
+                const mappedLocationList = renameKeys(res.data.documents, keyMap);
+
                 const payload: Payload = {
                     code: res.data.code,
-                    locationList: res.data.locationList
+                    locationList: mappedLocationList
                 }
 
                 return payload
@@ -50,16 +76,27 @@ export const useWeather = (): JsonsHook => {
 
         return payload
     }
-
-
-    // get server info
-    const getMainWeather = async (lattitude: number, longitude: number): Promise<Payload> => {
-        
+    
+    // get weather
+    const getWeather = async (lattitude: number, longitude: number, type: number): Promise<Payload> => { // 0: favorite, 1: current
         try {
-            const res: any = await axios.get(`http://192.168.1.7:5000/api/weather/getCurrentConditions?lat=${lattitude}&lon=${longitude}`)
-            
-            console.log('asdfadd')
-            console.log(res.data[0].Temperature)
+            const res: any = await axios.post(`http://192.168.1.7:5000/api/weather/getMainWeather`, {
+                location: {
+                    lat: lattitude,
+                    lon: longitude
+                }
+            })
+
+            if (res.data.code !== 200) {
+                const payload: Payload = {
+                    code: res.data.code ?? -1,
+                    msg: '서버에 연결할 수 없습니다.'
+                }
+
+                return payload
+            }
+
+            saveCurrentWeather(res.data)
 
             const payload: Payload = {
                 code: 200
@@ -77,33 +114,8 @@ export const useWeather = (): JsonsHook => {
 
         return payload
     }   
-    
 
-    // get server info
-    const getApi2 = async (lattitude: number, longitude: number): Promise<Payload> => {
-        try {
-            const res: any = await axios.get(`http://192.168.1.7:5000/api/weather/getForecasts?lat=37.715133&lon=126.734086`)
-            
-            console.log(res.data.daily)
-
-            const payload: Payload = {
-                code: 1000
-            }
-
-            return payload
-        } catch (error: any) {
-            errorHandler(error)
-        }
-
-        const payload: Payload = {
-            code: -1,
-            msg: '서버에 연결할 수 없습니다.'
-        }
-
-        return payload
-    }   
-
-    return { searchLocation, getMainWeather, getApi2 }
+    return { searchLocation, getWeather }
 }
 
 const errorHandler = (error: any): void => {

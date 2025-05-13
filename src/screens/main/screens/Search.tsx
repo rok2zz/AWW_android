@@ -5,12 +5,13 @@ import { RouteProp, useNavigation } from '@react-navigation/native';
 import { MainTabNavigationProp, MainTabParamList } from '../../../types/stack';
 import { useWeather } from '../../../hooks/useWeather';
 import { Payload } from '../../../types/api';
+import { Location } from '../../../slices/location';
 
 // svg
 import LeftArrow from '../../../assets/imgs/common/chevron_left.svg';
 import Delete from '../../../assets/imgs/common/icon_search_delete.svg';
 import SearchIcon from '../../../assets/imgs/common/icon_search.svg';
-import { Location } from '../../../slices/location';
+import MiniSearchIcon from '../../../assets/imgs/common/icon_search_mini.svg';
 
 interface Props {
 	route: RouteProp<MainTabParamList, 'Search'>
@@ -26,9 +27,10 @@ const Search = ({ route }: Props): React.JSX.Element => {
 	const [locationList, setLocationList] = useState<Location[]>([]);
 	
 	const handleBackNavigation = (): void => {
-		if (beforeScreen === 'Home') {
-			navigation.navigate('Home');
-		}
+		// if (beforeScreen === 'Home') {
+		// 	navigation.navigate('Home');
+		// }
+		navigation.goBack();
 	}
 
 	const handleTypeChange = (type: number): void => {
@@ -40,6 +42,7 @@ const Search = ({ route }: Props): React.JSX.Element => {
 
 		if (payload.locationList) {
 			setLocationList(payload.locationList);
+			console.log(payload.locationList)
 		}
 	}
 
@@ -68,9 +71,47 @@ const Search = ({ route }: Props): React.JSX.Element => {
 
 			<TopTabBar type={ tabType } typeChange={ handleTypeChange } tab1='최근 검색' tab2='즐겨찾기' />
 
-			<ScrollView showsVerticalScrollIndicator={ false } style={ styles.container }>
-				
-			</ScrollView>
+			{ tabType === 0 ? (
+				<ScrollView showsVerticalScrollIndicator={ false } style={ styles.container }>
+					{ locationList && locationList.length > 0 ? (
+							<Pressable>
+								{ locationList.map((item: Location, index: number) => (
+									<Pressable key={ index }>
+										<View style={ styles.searchList }>
+											<MiniSearchIcon style={{ marginRight: 10 }} />
+											<Text style={{ fontSize: 16, fontFamily: 'NotoSansKR-Regular', color: '#999999' }}>{ item.locationName }</Text>
+										</View>
+									</Pressable>
+								))}
+							</Pressable>
+						) : (
+							<View>
+								<Text style={[ styles.regularText, { textAlign: 'center', marginTop: 80 }]}>검색 결과가 없습니다.</Text>
+							</View>
+						)}
+				</ScrollView>
+			) : (
+				<ScrollView showsVerticalScrollIndicator={ false } style={ styles.container }>
+					{ locationList && locationList.length > 0 ? (
+							<Pressable>
+								{ locationList.map((item: Location, index: number) => (
+									<Pressable key={ index }>
+										<View style={ styles.searchList }>
+											<MiniSearchIcon style={{ marginRight: 10 }} />
+											<Text style={{ fontSize: 16, fontFamily: 'NotoSansKR-Regular', color: '#999999' }}>{ item.locationName }</Text>
+										</View>
+									</Pressable>
+								))}
+							</Pressable>
+						) : (
+							<View>
+								<Text style={[ styles.regularText, { textAlign: 'center', marginTop: 80 }]}>검색 결과가 없습니다.</Text>
+							</View>
+						)}
+				</ScrollView>
+			)}
+
+			
 		</View>
 
 		
@@ -102,10 +143,21 @@ const styles = StyleSheet.create({
 
 	},
 	container: {
+		backgroundColor: '#ffffff'
 	},
 	rowContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
+	},
+	searchList: {
+		flexDirection: 'row',
+		alignItems: 'center',
+
+		paddingVertical: 10,
+		paddingHorizontal: 20,
+
+		borderBottomWidth: 1,
+		borderBottomColor: '#eeeeee'
 	},
 	button: {
 		padding: 20,
@@ -114,7 +166,14 @@ const styles = StyleSheet.create({
 	button2: {
 		padding: 20,
 		backgroundColor: 'green',
-	}  
+	} ,
+	regularText: {
+		includeFontPadding: false,
+		fontSize: 16,
+		fontFamily: 'NotoSansKR-Regular',
+
+		color: '#000000'
+	} 
 })
 
 export default Search;

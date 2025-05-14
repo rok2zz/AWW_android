@@ -22,7 +22,7 @@ import WeatherIcon from '../../../../../components/WeatherIcon';
 
 
 const Home = (): React.JSX.Element => {
-	const naviggation = useNavigation<HomeStackNavigationProp>();
+	const navigation = useNavigation<HomeStackNavigationProp>();
     const tabNavigation = useNavigation<MainTabNavigationProp>();
 	const { getMainScheduleList } = useSchedule();
 	const { getWeather } = useWeather(); 
@@ -122,7 +122,7 @@ const Home = (): React.JSX.Element => {
 
 								if (index < 3) {
 									return (
-										<Pressable style={ styles.swiperContainer } key={ index } onPress={ getCurrentLocationWeather }>
+										<Pressable style={ styles.swiperContainer } key={ index } onPress={ (getCurrentLocationWeather) }>
 											<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
 												<View style={[ styles.rowContainer, { flex: 1 }]}>
 													<FilledStar style={ styles.icon } />
@@ -150,7 +150,7 @@ const Home = (): React.JSX.Element => {
 						</Swiper>
 					</View>
 				) : (
-					<Pressable style={ styles.contents } onPress={ getCurrentLocationWeather }>
+					<Pressable style={ styles.contents } onPress={ () => tabNavigation.navigate('Search', { before: '' }) }>
 						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
 							<Plus style={{ marginRight: 10 }} />
 							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>즐겨찾는 위치 추가</Text>
@@ -159,10 +159,14 @@ const Home = (): React.JSX.Element => {
 				)}
 
 
+				<Pressable style={{ padding: 20, marginTop: 20, backgroundColor: 'green', borderRadius: 15, }} onPress={ getCurrentLocationWeather }>
+					<Text style={{ includeFontPadding: false, fontSize: 20, fontFamily: 'NotoSansKR-Regular', color: '#ffffff'}}> 테스트용 날씨 호출 버튼</Text>
+				</Pressable>
+
 				{/* current area */}
 				{ currentWeather && (
 					<View style={[ styles.contents, { padding: 0 }]}>
-						<Pressable style={{ paddingHorizontal: 20, paddingTop: 20 }} onPress={ () => naviggation.navigate('WeatherDetail', { weather: currentWeather }) }>
+						<Pressable style={{ paddingHorizontal: 20, paddingTop: 20 }} onPress={ () => navigation.navigate('WeatherDetail', { weather: currentWeather }) }>
 							<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
 								<View style={[ styles.rowContainer, { flex: 1 }]}>
 									<FilledStar style={ styles.icon } />

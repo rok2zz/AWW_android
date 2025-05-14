@@ -23,7 +23,6 @@ const Search = ({ route }: Props): React.JSX.Element => {
 	const { searchLocation } = useWeather();
 	const [tabType, setTabType] = useState<number>(0); // 0: 최근 검색, 1: 즐겨찾기
 	const [searchText, setSearchText] = useState<string>('');
-	const [offset, setOffset] = useState<number>(25);
 	const [locationList, setLocationList] = useState<Location[]>([]);
 	
 	const handleBackNavigation = (): void => {
@@ -76,7 +75,7 @@ const Search = ({ route }: Props): React.JSX.Element => {
 					{ locationList && locationList.length > 0 ? (
 							<Pressable>
 								{ locationList.map((item: Location, index: number) => (
-									<Pressable key={ index }>
+									<Pressable style={{ backgroundColor: '#ffffff' }} key={ index }>
 										<View style={ styles.searchList }>
 											<MiniSearchIcon style={{ marginRight: 10 }} />
 											<Text style={{ fontSize: 16, fontFamily: 'NotoSansKR-Regular', color: '#999999' }}>{ item.locationName }</Text>
@@ -143,7 +142,6 @@ const styles = StyleSheet.create({
 
 	},
 	container: {
-		backgroundColor: '#ffffff'
 	},
 	rowContainer: {
 		flexDirection: 'row',

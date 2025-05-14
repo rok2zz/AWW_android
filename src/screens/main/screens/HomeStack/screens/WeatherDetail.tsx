@@ -5,7 +5,7 @@ import { HomeStackNavigationProp, HomeStackParamList } from "../../../../../type
 // svg 
 import LeftArrow from '../../../../../assets/imgs/common/chevron_left_white.svg'
 import LocationIcon from '../../../../../assets/imgs/weather/icon_location_white.svg'
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Forecasts } from "../../../../../slices/weather";
 import WeatherIcon from "../../../../../components/WeatherIcon";
 
@@ -16,26 +16,39 @@ interface Props {
 const WeatherDetail = ({ route }: Props): JSX.Element => {
     const navigation = useNavigation<HomeStackNavigationProp>();
     const weather = route.params?.weather;
+    const [showHeader, setShowHeader] = useState<boolean>(false);
 
-    useEffect(() => {
-        console.log(weather)
-        // if (weather.locationKey === '') {
-        //     Alert.alert('날씨 정보가 없습니다.', '날씨 정보를 다시 확인해주세요.')
-        //     navigation.goBack();
-        // }
-    }, [weather])
+    const handleScroll = (e: any) => {
+        const offsetY = e.nativeEvent.contentOffset.y;
+
+        if (offsetY > 200) {
+            setShowHeader(true);
+        } else {
+            setShowHeader(false);
+        }
+    }
 
     return (
         <View style={ styles.wrapper }>
             <StatusBar backgroundColor='#98b5c3' />
-            <View>
+            <View style={ styles.rowContainer }>
                 <Pressable style={{ padding: 20 }} onPress={ () => navigation.goBack() }>
                     <LeftArrow />
                 </Pressable>
+                
+                { weather && weather.locationKey !== '' && showHeader &&
+                    <View style={ styles.rowContainer }>
+                        <LocationIcon style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                        <Text style={[ styles.regularText, { marginRight: 10 }]}>{ weather.locationName }</Text>
+                        <WeatherIcon index={ weather.weatherIcon } size={ 30 } />
+                        <Text style={[ styles.extraBoldText, { fontSize: 20, marginRight: 5 }]}>{ weather.temperature.value.toFixed(0) }°</Text> 
+                        <Text style={[ styles.regularText, { fontSize: 14 }]}>{ weather.dailyForecasts[0].shortPhrase }</Text>
+                    </View>
+                }
             </View>
 
             { weather.locationKey !== '' && 
-                <ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
+                <ScrollView style={ styles.container } showsVerticalScrollIndicator={ false } onScroll={ handleScroll }>
                     {/* 요약 */}
                     <View style={ styles.titleContainer }>
                         <View style={[ styles.rowContainer ]}>

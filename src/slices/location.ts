@@ -8,7 +8,7 @@ export interface FavoriteLocation {
 }
 
 export interface Location {
-    locationName: string,
+    locationName?: string,
     lat: number,
     lon: number,
     locationKey?: string

@@ -25,7 +25,7 @@ export interface Weather {
     hourlyForecasts: Forecasts[],
 
     airQuality: {
-        pm10Grade: number
+        pm10Grade: string
     }
 }
 
@@ -54,7 +54,7 @@ const initialState: WeatherState = {
         hourlyForecasts: [],
     
         airQuality: {
-            pm10Grade: 0
+            pm10Grade: '1'
         }
     },
 

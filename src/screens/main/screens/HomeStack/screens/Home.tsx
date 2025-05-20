@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Image, LayoutChangeEvent, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, Image, LayoutChangeEvent, Linking, PermissionsAndroid, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Swiper from 'react-native-swiper';
 import { HomeStackNavigationProp, MainTabNavigationProp, RootStackNavigationProp, ScheduleNavigationProp } from '../../../../../types/stack';
 import { useSchedule } from '../../../../../hooks/useSchedule';
 import { useAndroidId } from '../../../../../hooks/useAuth';
-import { FavoriteLocation } from '../../../../../slices/location';
+import { FavoriteLocation, Location } from '../../../../../slices/location';
 import { Forecasts, Weather } from '../../../../../slices/weather';
 import { Schedule } from '../../../../../slices/schedule';
 import { Payload } from '../../../../../types/api';
@@ -18,6 +18,7 @@ import FilledStar from "../../../../../assets/imgs/schedule/icon_filled_star.svg
 import Plus from "../../../../../assets/imgs/schedule/icon_plus.svg"
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add.svg"
 import WeatherIcon from '../../../../../components/WeatherIcon';
+import Geolocation from '@react-native-community/geolocation';
 
 
 
@@ -29,6 +30,7 @@ const Home = (): React.JSX.Element => {
 	const androidId: string = useAndroidId();
 	const isFocused: boolean = useIsFocused();
 
+	const [location, setLocation] = useState<Location>({ lat: 0, lon: 0 })
 	const [favoriteLocation, setFavoriteLocation] = useState<FavoriteLocation[]>([{ key: '1', lattitude: 1, longitude: 1 },{ key: '1', lattitude: 1, longitude: 1 }])
 	const [weather, setWeather] = useState<any>({
 		key: '5',
@@ -68,12 +70,85 @@ const Home = (): React.JSX.Element => {
 	const currentWeather =  useCurrentWeather();
 	const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
 
+	useEffect(() => {
+		getGeolocation();
+
+		const interval = setInterval(() => {
+			getGeolocation();
+		  }, 3600000);
+	  
+		  return () => clearInterval(interval);
+	}, [])
 
 	useEffect(() => {
 		if (androidId && isFocused) {
 			getMainSchedule();
 		}
-	}, [isFocused, androidId]);
+	}, [isFocused]);
+
+	useEffect(() => {
+		if (location.lat !== 0 && location.lon !== 0 && androidId) {
+			getCurrentLocationWeather();
+		}
+	}, [location])
+
+	// get lat, lon
+	const getGeolocation = async () => {
+		if (Platform.OS === 'android') {
+			const granted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+
+			if (granted) {
+				console.log('permission granted');
+			} else {
+				console.log('permission denied');
+				try {
+					const granted = await PermissionsAndroid.request(
+					  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+					  {
+						title: '권한 요청',
+						message: '권한이 필요합니다.',
+						buttonNeutral: '나중에 묻기',
+						buttonNegative: '취소',
+						buttonPositive: '허용',
+					  },
+					);
+					if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+					} else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+						console.log('❌권한 요청을 차단했습니다.');
+						openAppSettings();
+					} else {
+					  console.log('Camera permission denied');
+					}
+				  } catch (err) {
+					console.warn(err);
+				  }
+			}
+		  } else {
+			Geolocation.requestAuthorization();
+		  }
+
+		Geolocation.getCurrentPosition(
+			(position) => {
+			//   console.log('위치 정보:', position);
+			  setLocation({ lat: position.coords.latitude, lon: position.coords.longitude })
+			},
+			(error) => {
+			//   console.error('위치 정보를 가져오는 중 오류 발생:', error);
+			},
+			{ enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+		  );
+	}
+
+	const openAppSettings = () => {
+		Alert.alert(
+			"알림 권한 필요",
+			"앱에서 알림을 받으려면 설정에서 권한을 허용해주세요.",
+			[
+				{ text: "취소", style: "cancel" },
+				{ text: "설정으로 이동", onPress: () => Linking.openSettings() }
+			]
+		);
+	};
 
 	const getMainSchedule = async () => {
 		const payload: Payload = await getMainScheduleList('test001');
@@ -84,25 +159,41 @@ const Home = (): React.JSX.Element => {
 	};
 
 	const getCurrentLocationWeather = async () => {
-		const payload: Payload = await getWeather(37.516152086, 127.019497385, 1);
+		console.log(location)
+		const payload: Payload = await getWeather(location.lat, location.lon, 0);
 	}
 
 	const getFavoriteLocationWeather = async () => {
-		const payload: Payload = await getWeather(37.516152086, 127.019497385, 0);
+		const payload: Payload = await getWeather(location.lat, location.lon, 0);
 	}
 
-	const getAirQuality = (airQuality: number) => {
-		if (airQuality === 1) {
-			return '좋음';
-		} else if (airQuality === 2) {
-			return '보통';
-		} else if (airQuality === 3) {
-			return '나쁨';
-		} else if (airQuality === 4) {
-			return '매우 나쁨';
-		} 
+	const getAirQuality = (airQuality: string) => {
+		switch (airQuality) {
+			case '1':
+				return '좋음';
+			case '2':
+				return '보통';
+			case '3':
+				return '나쁨';
+			case '4':
+				return '매우 나쁨';
+			default:
+				return '보통'
+		}
+	}
 
-		return '보통'
+	const getAirQuarityColor = (airQuality: string) => {
+		switch (airQuality) {
+			case '1':
+			case '2':
+			  	return '#51ff00';
+			case '3':
+			  	return '#ff9600';
+			case '4':
+			  	return '#ff4c4c';
+			default:
+			  	return '#ffffff'; // 기본 색상
+		}
 	}
 
 	return (
@@ -122,7 +213,7 @@ const Home = (): React.JSX.Element => {
 
 								if (index < 3) {
 									return (
-										<Pressable style={ styles.swiperContainer } key={ index } onPress={ (getCurrentLocationWeather) }>
+										<Pressable style={ styles.swiperContainer } key={ index } onPress={ () => {} }>
 											<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
 												<View style={[ styles.rowContainer, { flex: 1 }]}>
 													<FilledStar style={ styles.icon } />
@@ -130,8 +221,8 @@ const Home = (): React.JSX.Element => {
 												</View>
 												<View style={ styles.rowContainer }>
 													<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
-													<Text style={[ styles.regularText, { color: 'red' }]}>{ item.dust }</Text>
-												</View>
+													<Text style={[ styles.regularText, { color: getAirQuarityColor(item.airQuality.pm10Grade) }]}>{ getAirQuality(item.airQuality.pm10Grade) }</Text>
+													</View>
 											</View>
 
 											<View style={ styles.rowContainer }>
@@ -158,11 +249,6 @@ const Home = (): React.JSX.Element => {
 					</Pressable>
 				)}
 
-
-				<Pressable style={{ padding: 20, marginTop: 20, backgroundColor: 'green', borderRadius: 15, }} onPress={ getCurrentLocationWeather }>
-					<Text style={{ includeFontPadding: false, fontSize: 20, fontFamily: 'NotoSansKR-Regular', color: '#ffffff'}}> 테스트용 날씨 호출 버튼</Text>
-				</Pressable>
-
 				{/* current area */}
 				{ currentWeather && (
 					<View style={[ styles.contents, { padding: 0 }]}>
@@ -174,7 +260,7 @@ const Home = (): React.JSX.Element => {
 								</View>
 								<View style={ styles.rowContainer }>
 									<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
-									<Text style={[ styles.regularText, { color: 'red' }]}>{ getAirQuality(currentWeather.airQuality.pm10Grade) }</Text>
+									<Text style={[ styles.regularText, { color: getAirQuarityColor(currentWeather.airQuality.pm10Grade) }]}>{ getAirQuality(currentWeather.airQuality.pm10Grade) }</Text>
 								</View>
 							</View>
 

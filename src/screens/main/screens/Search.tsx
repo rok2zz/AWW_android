@@ -23,6 +23,7 @@ const Search = ({ route }: Props): React.JSX.Element => {
 	const { searchLocation } = useWeather();
 	const [tabType, setTabType] = useState<number>(0); // 0: 최근 검색, 1: 즐겨찾기
 	const [searchText, setSearchText] = useState<string>('');
+	const [isSearched, setIsSearched] = useState<boolean>(false);
 	const [locationList, setLocationList] = useState<Location[]>([]);
 	
 	const handleBackNavigation = (): void => {
@@ -37,12 +38,20 @@ const Search = ({ route }: Props): React.JSX.Element => {
 	}
 	
 	const handleSearch = async () => {
+		if (searchText === '') return
 		const payload: Payload = await searchLocation(searchText, 100);
 
 		if (payload.locationList) {
 			setLocationList(payload.locationList);
-			console.log(payload.locationList)
 		}
+
+		setIsSearched(true);
+	}
+
+	const clearSearchText = () => {
+		setSearchText('');
+		setLocationList([]);
+		setIsSearched(false);
 	}
 
 	return (
@@ -58,7 +67,7 @@ const Search = ({ route }: Props): React.JSX.Element => {
 
 				{ searchText && searchText !== '' &&
 					<View style={ styles.rowContainer }>
-						<Pressable onPress={ (): void => setSearchText('') }>
+						<Pressable onPress={ clearSearchText }>
 							<Delete />
 						</Pressable>
 						<Pressable onPress={ handleSearch }>
@@ -68,7 +77,8 @@ const Search = ({ route }: Props): React.JSX.Element => {
 				}
 			</View>
 
-			<TopTabBar type={ tabType } typeChange={ handleTypeChange } tab1='최근 검색' tab2='즐겨찾기' />
+			{ !isSearched && <TopTabBar type={ tabType } typeChange={ handleTypeChange } tab1='최근 검색' tab2='즐겨찾기' /> }
+			
 
 			{ tabType === 0 ? (
 				<ScrollView showsVerticalScrollIndicator={ false } style={ styles.container }>

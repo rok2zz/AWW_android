@@ -20,6 +20,7 @@ import Location from "../../../../../assets/imgs/schedule/icon_location_non_sele
 import EventAdd from "../../../../../assets/imgs/schedule/icon_event_add.svg"
 import TodoDelete from "../../../../../assets/imgs/schedule/icon_todo_delete.svg"
 import TodoModify from "../../../../../assets/imgs/schedule/icon_todo_modify.svg"
+import { useAndroidId } from "../../../../../hooks/useAuth";
 
 interface ToggleProps {
     value: boolean,
@@ -72,7 +73,8 @@ const Toggle = ({ value, setValue }: ToggleProps): JSX.Element => {
 
 const ScheduleDetail = ({ route }: Props): JSX.Element => {  
     const navigation = useNavigation<ScheduleNavigationProp>();
-    const scheduleId = route.params.id;
+    const androidId = useAndroidId();
+    const scheduleId = route.params.id ?? 0;
     const { getSchedule, modifySchedule, deleteSchedule, endSchedule } = useSchedule();
     const [type, setType] = useState<number>(0); // 0: 조회하기 1: 수정하기
     const dateType: number = 0 // 0: 12시간제, 1: 24시간제
@@ -326,7 +328,7 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
 
                             setSchedule(newSchedule);
 
-                            const payload: Payload = await modifySchedule('test001', newSchedule, deleteIdList)
+                            const payload: Payload = await modifySchedule(androidId, newSchedule, deleteIdList)
 
                             if (payload.code === 200) {
                                 Alert.alert('알림', '일정이 수정되었습니다.')

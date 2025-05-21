@@ -18,10 +18,6 @@ const Alarm = (): React.JSX.Element => {
 		getGeolocation()
 	}, [])
 
-	useEffect(() => {
-		console.log(location)
-	}, [location])
-
 	const getGeolocation = async () => {
 		if (Platform.OS === 'android') {
 			const granted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);

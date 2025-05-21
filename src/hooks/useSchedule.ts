@@ -7,6 +7,7 @@ import { saveCurrentScheduleList, savePastScheduleList, Schedule, Todo } from ".
 import { bindActionCreators } from "@reduxjs/toolkit";
 import { useMemo } from "react";
 import { renameKeys } from "./funcions";
+import { useAndroidId } from "./useAuth";
 
 interface ScheduleHook {
     getMainScheduleList: (userId: string) => Promise<Payload>,
@@ -32,10 +33,10 @@ export const usePastScheduleList = (): Schedule[] => {
     return useSelector((state: RootState) => state.schedule.pastScheduleList);
 }
 
-
-
 export const useSchedule = (): ScheduleHook => {
+    const url = 'http://175.126.73.103:5000'
     const { saveCurrentScheduleList, savePastScheduleList } = useScheduleActions()
+    const androidId = useAndroidId();
     const language: string = 'ko-kr';
 
     // get ScheduleList
@@ -52,10 +53,11 @@ export const useSchedule = (): ScheduleHook => {
         };
 
         try {
-            const res: any = await axios.post('http://192.168.1.7:5000/api/schedule/getMainScheduleList', {
+            const res: any = await axios.post(`${url}/api/schedule/getMainScheduleList`, {
                 userId: userId
             })
 
+            console.log(res.data)
 
             if (res.data.code !== 200) {
                 const payload: Payload = {
@@ -101,7 +103,7 @@ export const useSchedule = (): ScheduleHook => {
         };
 
         try {
-            const res: any = await axios.post('http://192.168.1.7:5000/api/schedule/getScheduleList', {
+            const res: any = await axios.post(`${url}/api/schedule/getScheduleList`, {
                 userId: userId
             })
 
@@ -151,7 +153,7 @@ export const useSchedule = (): ScheduleHook => {
         };
 
         try {
-            const res: any = await axios.post('http://192.168.1.7:5000/api/schedule/getSchedule', {
+            const res: any = await axios.post(`${url}/api/schedule/getSchedule`, {
                 scheduleId: scheduleId
             })
 
@@ -189,16 +191,14 @@ export const useSchedule = (): ScheduleHook => {
     // create Schedule
     const createSchedule = async (schedule: Schedule): Promise<Payload> => {
         try {
-            console.log(schedule.todoList)
-            const res: any = await axios.post(`http://192.168.1.7:5000/api/schedule/createSchedule`, {
-                userId: 'test001',
+            const res: any = await axios.post(`${url}/api/schedule/createSchedule`, {
+                userId: androidId,
                 schedule: {
                     title: schedule.title,
                     type: 0
                 },
                 todos: schedule.todoList
             })
-
             
             if (res.data.code !== 200) {
                 const payload: Payload = {
@@ -231,8 +231,9 @@ export const useSchedule = (): ScheduleHook => {
         const existingTodos: Todo[] = schedule.todoList?.filter(item => item.id !== undefined) ?? []
         const newTodos: Todo[] = schedule.todoList?.filter(item => item.id === undefined) ?? []
 
+        console.log(schedule)
         try {
-            const res: any = await axios.post(`http://192.168.1.7:5000/api/schedule/modifySchedule`, {
+            const res: any = await axios.post(`${url}/api/schedule/modifySchedule`, {
                 userId: userId,
                 scheduleId: schedule.id,
                 schedule: {
@@ -274,7 +275,7 @@ export const useSchedule = (): ScheduleHook => {
     // delete schedule
     const deleteSchedule = async (scheduleId: number): Promise<Payload> => {
         try {
-            const res: any = await axios.post(`http://192.168.1.7:5000/api/schedule/modifyScheduleStatus`, {
+            const res: any = await axios.post(`${url}/api/schedule/modifyScheduleStatus`, {
                 scheduleId: scheduleId,
                 status: -1
             })
@@ -308,7 +309,7 @@ export const useSchedule = (): ScheduleHook => {
     // end schedule
     const endSchedule = async (scheduleId: number): Promise<Payload> => {
         try {
-            const res: any = await axios.post(`http://192.168.1.7:5000/api/schedule/modifyScheduleStatus`, {
+            const res: any = await axios.post(`${url}/api/schedule/modifyScheduleStatus`, {
                 scheduleId: scheduleId,
                 status: 0
             })            

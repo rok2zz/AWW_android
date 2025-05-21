@@ -75,22 +75,26 @@ const Home = (): React.JSX.Element => {
 
 		const interval = setInterval(() => {
 			getGeolocation();
-		  }, 3600000);
+		}, 3600000);
 	  
-		  return () => clearInterval(interval);
+		return () => clearInterval(interval);
 	}, [])
 
 	useEffect(() => {
 		if (androidId && isFocused) {
 			getMainSchedule();
 		}
-	}, [isFocused]);
+	}, [isFocused, androidId]);
 
 	useEffect(() => {
 		if (location.lat !== 0 && location.lon !== 0 && androidId) {
 			getCurrentLocationWeather();
 		}
 	}, [location])
+
+	useEffect(() => {
+		console.log(scheduleList)
+	}, [scheduleList])
 
 	// get lat, lon
 	const getGeolocation = async () => {
@@ -151,7 +155,7 @@ const Home = (): React.JSX.Element => {
 	};
 
 	const getMainSchedule = async () => {
-		const payload: Payload = await getMainScheduleList('test001');
+		const payload: Payload = await getMainScheduleList(androidId);
 
 		if (payload.code === 200) {
 			setScheduleList(payload.scheduleList ?? [])
@@ -185,6 +189,7 @@ const Home = (): React.JSX.Element => {
 	const getAirQuarityColor = (airQuality: string) => {
 		switch (airQuality) {
 			case '1':
+				return '#50a0ff'
 			case '2':
 			  	return '#51ff00';
 			case '3':
@@ -321,7 +326,7 @@ const Home = (): React.JSX.Element => {
 
 								if (index < 5 && item.status == 1) {
 									return (
-										<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'Detail', id: item.id }) } key={ index }>
+										<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleDetail', params:{ id: item.id }}) } key={ index }>
 											<View style={[ styles.rowContainer, { padding: 20 }]}>
 												<Text style={[ styles.regularText, { flex: 1, fontSize: 16 }]}>{ item.title }</Text>
 												<Text style={[ styles.regularText, { fontSize: 14, color: 'rgba(255, 255, 255, 0.5)'} ]}>{ getTime(item.earliestStart ?? '') }</Text>

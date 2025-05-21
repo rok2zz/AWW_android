@@ -32,6 +32,8 @@ export const useLastUpdateWeather = (): string => {
 }
 
 export const useWeather = (): JsonsHook => {
+    const url = 'http://175.126.73.103:5000'
+
     const language: string = 'ko-kr'
     const temperatureScale: string = 'celsius' // F: metric
     const { saveCurrentWeather } = useWeatherActions()
@@ -80,7 +82,7 @@ export const useWeather = (): JsonsHook => {
     // get weather
     const getWeather = async (lattitude: number, longitude: number, type: number): Promise<Payload> => { // 0: favorite, 1: current
         try {
-            const res: any = await axios.post(`http://192.168.1.7:5000/api/weather/getMainWeather`, {
+            const res: any = await axios.post(`${url}/api/weather/getMainWeather`, {
                 location: {
                     lat: lattitude,
                     lon: longitude

@@ -8,6 +8,9 @@ export interface Forecasts {
     minimum?: number,
     maximum?: number,
     precipitationProbability?: number,
+    moonPhase?: string
+    sunRise?: string,
+    sunSet?: string
 }
 
 export interface Weather {
@@ -24,8 +27,21 @@ export interface Weather {
     dailyForecasts: Forecasts[],
     hourlyForecasts: Forecasts[],
 
-    airQuality: {
-        pm10Grade: string
+    indexes: {
+        uvIndex: number,
+        uvIndexGrade: number,
+        visibility: number,
+        visiblityGrade: number,
+        relativeHumidity: number,
+        precip1hr: number,
+        pm10Grade?: number,
+        pm10Value?: number,
+        pm25Grade?: number,
+        pm25Value?: number,
+        windDirection: string,
+        windDegrees: number,
+        windSpeed: number,
+        pressure: number
     }
 }
 
@@ -53,8 +69,21 @@ const initialState: WeatherState = {
         dailyForecasts: [],
         hourlyForecasts: [],
     
-        airQuality: {
-            pm10Grade: '1'
+        indexes: {
+            uvIndex: 0,
+            uvIndexGrade: 0,
+            visibility: 0,
+            visiblityGrade: 0,
+            relativeHumidity: 0,
+            precip1hr: 0,
+            pm10Grade: 0,
+            pm10Value: 0,
+            pm25Grade: 0,
+            pm25Value: 0,
+            windDirection: '',
+            windDegrees: 0,
+            windSpeed: 0,
+            pressure: 0
         }
     },
 

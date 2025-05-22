@@ -1,22 +1,80 @@
-import { Alert, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native"
+import { Alert, Dimensions, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native"
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { HomeStackNavigationProp, HomeStackParamList } from "../../../../../types/stack";
+import { useEffect, useState } from "react";
+import { Forecasts } from "../../../../../slices/weather";
+import WeatherIcon from "../../../../../components/WeatherIcon";
+import Svg, { Circle, Path } from "react-native-svg";
 
 // svg 
 import LeftArrow from '../../../../../assets/imgs/common/chevron_left_white.svg'
 import LocationIcon from '../../../../../assets/imgs/weather/icon_location_white.svg'
-import { useEffect, useState } from "react";
-import { Forecasts } from "../../../../../slices/weather";
-import WeatherIcon from "../../../../../components/WeatherIcon";
+import Quater from '../../../../../assets/imgs/weather/img_quater.svg'
+import Arrow from '../../../../../assets/imgs/weather/img_arrow.svg'
+
 
 interface Props {
     route: RouteProp<HomeStackParamList, 'WeatherDetail'>
+}
+
+interface sunPhase {
+    sunX: number,
+    sunY: number,
+    ratio: number,
+    angle: number
 }
 
 const WeatherDetail = ({ route }: Props): JSX.Element => {
     const navigation = useNavigation<HomeStackNavigationProp>();
     const weather = route.params?.weather;
     const [showHeader, setShowHeader] = useState<boolean>(false);
+    const [windWidth, setWindWidth] = useState<number>(0);
+
+    const [sunPhase, setSunPhase] = useState<sunPhase>({
+        sunX: 0,
+        sunY: 0,
+        ratio: 0,
+        angle: 0
+    });    
+
+    const arcWidth = Dimensions.get('window').width - 120; // 원의 지름
+    const radius = arcWidth / 2 - 10; // 반지름: padding 고려
+    const arcLength = Math.PI * radius;
+    const centerX = arcWidth / 2;
+    const centerY = radius + 20;
+    const arcPath = `M ${10} ${radius + 20} A ${radius} ${radius} 0 0 1 ${arcWidth - 10} ${radius + 20}`;
+
+    useEffect(() => {
+        if (weather.dailyForecasts) {
+            const now = new Date();
+            const hour = now.getHours();
+            const sunRiseHour = new Date(weather.dailyForecasts[0].sunRise ?? '').getHours();
+            const sunSetHour = new Date(weather.dailyForecasts[0].sunSet ?? '').getHours();
+            const ratio = (hour - sunRiseHour) / (sunSetHour - sunRiseHour);
+
+            const clampedRatio = Math.max(0, Math.min(1, ratio));
+            const angle = Math.PI * clampedRatio;
+            const baseX = centerX + radius * Math.cos(Math.PI - angle);
+            const baseY = centerY - radius * Math.sin(Math.PI - angle);
+
+            // 아크 위의 점에서 바깥 방향 (법선 벡터)
+            const normalX = Math.sin(Math.PI - angle);
+            const normalY = Math.cos(Math.PI - angle);
+
+            // 보정된 원 중심
+            const sunX = baseX + normalX * 5;
+            const sunY = baseY + normalY * 5;
+
+
+            setSunPhase({
+                sunX,
+                sunY,
+                ratio: clampedRatio,
+                angle
+            })
+        }
+
+    },[weather])
 
     const handleScroll = (e: any) => {
         const offsetY = e.nativeEvent.contentOffset.y;
@@ -26,6 +84,68 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
         } else {
             setShowHeader(false);
         }
+    }
+
+    const getAirQuality = (airQuality: number) => {
+		switch (airQuality) {
+			case 1:
+				return '좋음';
+			case 2:
+				return '보통';
+			case 3:
+				return '나쁨';
+			case 4:
+				return '매우 나쁨';
+            case 5:
+                return '위험';
+			default:
+				return '보통'
+		}
+	}
+
+	const getAirQuarityColor = (airQuality: number) => {
+		switch (airQuality) {
+			case 1:
+				return '#50a0ff'
+			case 2:
+			  	return '#51ff00';
+			case 3:
+			  	return '#ff9600';
+			case 4:
+			  	return '#ff4c4c';
+			default:
+			  	return '#ffffff'; // 기본 색상
+		}
+	}
+
+    const getMoonPhase = (moonPhase: string): string => {
+        switch (moonPhase) {
+            case 'New':
+                return '삭'
+            case 'WaxingCrescent':
+                return '초승달'
+            case 'FirstQuarter':
+                return '상현달'
+            case 'WaxingGibbous':
+                return '상현과 보름 사이'
+            case 'Full':
+                return '보름달'
+            case 'WaningGibbous':
+                return '보름과 하현 사이'
+            case 'LastQuarter':
+                return '하현달'
+            case 'WaningCrescent':
+                return '그믐달'
+            default: 
+                return moonPhase
+        }
+    }
+
+    const getSunPhase = (time: string) => {
+        const hour = new Date(time).getHours();
+        const minutes = new Date(time).getMinutes();
+
+        return hour < 12 ? ('오전 ' + hour + ':' + (minutes < 10 ? '0' + minutes : minutes)) : '오후 ' + (hour - 12)+ ':' + (minutes < 10 ? '0' + minutes : minutes);
     }
 
     return (
@@ -75,7 +195,6 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
 								{ weather.hourlyForecasts && weather.hourlyForecasts.map((item: Forecasts, index: number) => {
                                     const getTime = (): string => {
                                         const hour = new Date(item.dateTime).getHours();
-                                        const minutes = new Date(item.dateTime).getMinutes();
 
                                         return hour < 12 ? '오전 ' + hour + '시' : '오후 ' + (hour - 12) + '시';
                                     }
@@ -135,12 +254,155 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                         })}
                     </View>
 
-                    {/* 미세먼지 */}
-                    <View style={[ styles.contents, { marginBottom: 150 }]}>
-                        <View style={ styles.contentsTitle }>
-                            <Text style={[ styles.regularText, { fontSize: 16 }]}>미세먼지</Text>
+                    {/* 기타 날씨 */}
+                    { weather.indexes &&
+                        <View style={ styles.contents }>
+                            <View style={ styles.contentsTitle }>
+                                <Text style={[ styles.regularText, { fontSize: 16 }]}>대기 및 지수</Text>
+                            </View>
+                            <View style={{ marginTop: 20 }}>
+                                {/* <View style={[ styles.rowContainer, { marginBottom: 10, justifyContent: 'space-between' }]}>
+                                    <Text style={ styles.regularText }>주의보</Text>
+                                    <View style={ styles.rowContainer }>
+                                        <Text style={[ styles.regularText, { marginRight: 5, color: 'rgba(255, 255, 255, 0.5)' }]}>{ weather.indexes.relativeHumidity ?? 0 }%</Text>
+                                        <Text style={ styles.regularText }>{ getAirQuality(weather.indexes.relativeHumidity ?? 0) }</Text>
+                                    </View>                                
+                                </View> */}
+
+                                <View style={[ styles.rowContainer, { marginBottom: 10, justifyContent: 'space-between' }]}>
+                                    <Text style={ styles.regularText }>미세먼지</Text>
+                                    <View style={ styles.rowContainer }>
+                                        <Text style={[ styles.regularText, { marginRight: 5, color: 'rgba(255, 255, 255, 0.5)' }]}>{ weather.indexes.pm10Value ?? 0 }㎍/m³</Text>
+                                        <Text style={[ styles.regularText, { color: getAirQuarityColor(weather.indexes.pm10Grade ?? 0) }]}>{ getAirQuality(weather.indexes.pm10Grade ?? 0) }</Text>
+                                    </View>                                
+                                </View>
+
+                                <View style={[ styles.rowContainer, { marginBottom: 10, justifyContent: 'space-between' }]}>
+                                    <Text style={ styles.regularText }>초미세먼지</Text>
+                                    <View style={ styles.rowContainer }>
+                                        <Text style={[ styles.regularText, { marginRight: 5, color: 'rgba(255, 255, 255, 0.5)' }]}>{ weather.indexes.pm25Value ?? 0 }㎍/m³</Text>
+                                        <Text style={[ styles.regularText, { color: getAirQuarityColor(weather.indexes.pm25Grade ?? 0) }]}>{ getAirQuality(weather.indexes.pm25Grade ?? 0) }</Text>
+                                    </View>                                
+                                </View>
+
+                                <View style={[ styles.rowContainer, { marginBottom: 10, justifyContent: 'space-between' }]}>
+                                    <Text style={ styles.regularText }>가시거리</Text>
+                                    <View style={ styles.rowContainer }>
+                                        <Text style={[ styles.regularText, { marginRight: 5, color: 'rgba(255, 255, 255, 0.5)' }]}>{ weather.indexes.visibility ?? 0 }km</Text>
+                                        <Text style={ styles.regularText }>{ getAirQuality(weather.indexes.visiblityGrade ?? 0) }</Text>
+                                    </View>                               
+                                </View>
+
+                                <View style={[ styles.rowContainer, { marginBottom: 10, justifyContent: 'space-between' }]}>
+                                    <Text style={ styles.regularText }>자외선</Text>
+                                    <View style={ styles.rowContainer }>
+                                        <Text style={[ styles.regularText, { marginRight: 5, color: 'rgba(255, 255, 255, 0.5)' }]}>{ weather.indexes.uvIndex ?? 0 }</Text>
+                                        <Text style={ styles.regularText }>{ getAirQuality(weather.indexes.uvIndexGrade ?? 0) }</Text>
+                                    </View>                                
+                                </View>
+
+                                <View style={[ styles.rowContainer, { marginBottom: 10, justifyContent: 'space-between' }]}>
+                                    <Text style={ styles.regularText }>습도</Text>
+                                    <View style={ styles.rowContainer }>
+                                        <Text style={[ styles.regularText, { marginRight: 5, color: 'rgba(255, 255, 255, 0.5)' }]}>{ weather.indexes.relativeHumidity ?? 0 }%</Text>
+                                        <Text style={ styles.regularText }>{ getAirQuality(weather.indexes.relativeHumidity ?? 0) }</Text>
+                                    </View>
+                                </View>
+
+                                <View style={[ styles.rowContainer, { marginBottom: 10, justifyContent: 'space-between' }]}>
+                                    <Text style={ styles.regularText }>강수량</Text>
+                                    <View style={ styles.rowContainer }>
+                                        <Text style={[ styles.regularText, { marginRight: 5, color: 'rgba(255, 255, 255, 0.5)' }]}>{ weather.indexes.relativeHumidity ?? 0 }mm</Text>
+                                        <Text style={ styles.regularText }>{ getAirQuality(weather.indexes.relativeHumidity ?? 0) }</Text>
+                                    </View>                                
+                                </View>
+                            </View>
                         </View>
-                    </View>
+                    }
+
+                    {/* 일조시간 및 풍속 */}
+                    { weather.dailyForecasts && weather.dailyForecasts.length > 0 && 
+                        <View style={ styles.contents }>
+                            <View style={ styles.contentsTitle }>
+                                <Text style={[ styles.regularText, { fontSize: 16 }]}>일조시간 및 풍속</Text>
+                            </View>
+                            <View style={{ marginTop: 20 }}>
+                                <View style={ [ styles.rowContainer, { justifyContent: 'flex-end' }]}>
+                                    <Text style={[ styles.regularText, { fontSize: 12 }]}>{ getMoonPhase(weather.dailyForecasts[0]?.moonPhase ?? '') }</Text>   
+                                </View>
+
+                                <View style={{ alignItems: 'center' }}>
+                                    <Svg width={ arcWidth } height={ centerY + 15 }>
+                                        <Path
+                                            d={arcPath}
+                                            stroke="rgba(255, 255, 255, 0.5)"
+                                            strokeWidth={ 5 }
+                                            fill="none"
+                                            strokeLinecap="square"
+                                        />
+                                        
+                                       {/* 진행 아크 */}
+                                        <Path
+                                            d={arcPath}
+                                            stroke="#fff"
+                                            strokeWidth={ 5 }
+                                            fill="none"
+                                            strokeLinecap="square"
+                                            strokeDasharray={arcLength + 10}
+                                            strokeDashoffset={arcLength * (1 - sunPhase.ratio)}
+                                        />
+
+                                        {/* 3. 원 */}
+                                        <Circle
+                                            cx={ sunPhase.sunX }
+                                            cy={ sunPhase.sunY }
+                                            r={7}
+                                            fill="#ffffff"
+                                        />
+                                    </Svg>
+
+                                    <View style={[ styles.windPhase ]}
+                                        onLayout={ e => setWindWidth(e.nativeEvent.layout.width) }
+                                    >
+                                        <View style={{ width: 100, alignItems: 'flex-end', marginRight: 10 }}>
+                                            <Text style={[ styles.regularText, { fontSize: 12 }]}>{ weather.indexes.windDirection }풍</Text>
+                                            <Text style={[ styles.regularText, { fontSize: 12 }]}>{ weather.indexes.windDegrees }°</Text>
+                                        </View>
+
+                                        <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Quater width={ arcWidth / 2.5 } height={ arcWidth / 2.5 }/>
+
+                                            <View style={ styles.windDirection }>
+                                                <Arrow style={{ transform: [{ rotate: `${(weather.indexes.windDegrees + 180) % 360}deg` }] }} width={ arcWidth / 3.5 } height={ arcWidth / 3.5 } />
+                                                <View style={{ position: 'absolute', justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Text style={[ styles.regularText, { marginBottom: -3, fontSize: 20 }]}>{ weather.indexes.windSpeed.toFixed(1) }</Text>
+                                                    <Text style={[ styles.regularText, { fontSize: 12 }]}>m/s</Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                        
+
+                                        <View style={{ width: 100, alignItems: 'flex-start', marginLeft: 10 }}>
+                                            <Text style={[ styles.regularText, { fontSize: 12, color: 'rgba(255, 255, 255, 0.5)'} ]}>기압</Text>
+                                            <Text style={[ styles.regularText, { fontSize: 12 }]}>{ weather.indexes.pressure.toLocaleString() } hPa</Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={[ styles.sunPhase, { width: arcWidth - 45 }]}>
+                                        <View style={{ alignItems: 'flex-start' }}>
+                                            <Text style={[ styles.regularText, { fontSize: 10, color: 'rgba(255, 255, 255, 0.5)' }]}>일출</Text>
+                                            <Text style={[ styles.regularText, { fontSize: 12 }]}>{ getSunPhase(weather.dailyForecasts[0]?.sunRise ?? '') }</Text>
+                                        </View>
+                                        <View style={{ alignItems: 'flex-end' }}>
+                                            <Text style={[ styles.regularText, { fontSize: 10, color: 'rgba(255, 255, 255, 0.5)' }]}>일몰</Text>
+                                            <Text style={[ styles.regularText, { fontSize: 12 }]}>{ getSunPhase(weather.dailyForecasts[0]?.sunSet ?? '') }</Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+                        </View>
+                    }
+                    <View style={{ marginBottom: 150 }}></View>
                 </ScrollView>
             }
             
@@ -204,6 +466,26 @@ const styles = StyleSheet.create({
 
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255, 255, 255, 0.25)'
+    },
+    windPhase: {
+        alignItems: 'center',
+        justifyContent: 'space-between',
+
+        position: 'absolute',
+        bottom: 10,
+        flexDirection: 'row',
+    },
+    windDirection: {
+        position: 'absolute',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    sunPhase: {
+        position: 'absolute',
+        left: 45,
+        bottom: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     }
 })
 

@@ -84,10 +84,12 @@ export const useWeather = (): JsonsHook => {
         try {
             const res: any = await axios.post(`${url}/api/weather/getMainWeather`, {
                 location: {
-                    lat: lattitude,
-                    lon: longitude
+                    lat: 37.74913611,
+                    lon: 128.8784972
                 }
             })
+
+            console.log(res.data)
 
             if (res.data.code !== 200) {
                 const payload: Payload = {

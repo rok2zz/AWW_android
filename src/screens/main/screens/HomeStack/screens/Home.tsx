@@ -171,30 +171,30 @@ const Home = (): React.JSX.Element => {
 		const payload: Payload = await getWeather(location.lat, location.lon, 0);
 	}
 
-	const getAirQuality = (airQuality: string) => {
+	const getAirQuality = (airQuality: number) => {
 		switch (airQuality) {
-			case '1':
+			case 1:
 				return '좋음';
-			case '2':
+			case 2:
 				return '보통';
-			case '3':
+			case 3:
 				return '나쁨';
-			case '4':
+			case 4:
 				return '매우 나쁨';
 			default:
 				return '보통'
 		}
 	}
 
-	const getAirQuarityColor = (airQuality: string) => {
+	const getAirQuarityColor = (airQuality: number) => {
 		switch (airQuality) {
-			case '1':
+			case 1:
 				return '#50a0ff'
-			case '2':
+			case 2:
 			  	return '#51ff00';
-			case '3':
+			case 3:
 			  	return '#ff9600';
-			case '4':
+			case 4:
 			  	return '#ff4c4c';
 			default:
 			  	return '#ffffff'; // 기본 색상
@@ -226,7 +226,7 @@ const Home = (): React.JSX.Element => {
 												</View>
 												<View style={ styles.rowContainer }>
 													<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
-													<Text style={[ styles.regularText, { color: getAirQuarityColor(item.airQuality.pm10Grade) }]}>{ getAirQuality(item.airQuality.pm10Grade) }</Text>
+													<Text style={[ styles.regularText, { color: getAirQuarityColor(item.airQuality.pm10Grade ?? 0) }]}>{ getAirQuality(item.airQuality.pm10Grade ?? 0) }</Text>
 													</View>
 											</View>
 
@@ -265,7 +265,7 @@ const Home = (): React.JSX.Element => {
 								</View>
 								<View style={ styles.rowContainer }>
 									<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
-									<Text style={[ styles.regularText, { color: getAirQuarityColor(currentWeather.airQuality.pm10Grade) }]}>{ getAirQuality(currentWeather.airQuality.pm10Grade) }</Text>
+									<Text style={[ styles.regularText, { color: getAirQuarityColor(currentWeather.indexes?.pm10Grade ?? 0) }]}>{ getAirQuality(currentWeather.indexes?.pm10Grade ?? 0) }</Text>
 								</View>
 							</View>
 

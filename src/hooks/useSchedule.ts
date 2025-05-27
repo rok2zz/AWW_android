@@ -231,7 +231,6 @@ export const useSchedule = (): ScheduleHook => {
         const existingTodos: Todo[] = schedule.todoList?.filter(item => item.id !== undefined) ?? []
         const newTodos: Todo[] = schedule.todoList?.filter(item => item.id === undefined) ?? []
 
-        console.log(schedule)
         try {
             const res: any = await axios.post(`${url}/api/schedule/modifySchedule`, {
                 userId: userId,

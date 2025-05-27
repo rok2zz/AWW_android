@@ -1,24 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Linking, PermissionsAndroid, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import TopTabBar from '../../../components/tabBar/TopTabBar';
+import React, { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import TopTabBar from '../../../../../components/tabBar/TopTabBar';
 import { RouteProp, useNavigation } from '@react-navigation/native';
-import { MainTabNavigationProp, MainTabParamList } from '../../../types/stack';
-import { useWeather } from '../../../hooks/useWeather';
-import { Payload } from '../../../types/api';
-import { Location } from '../../../slices/location';
+import { MainTabNavigationProp, MainTabParamList, SearchStackNavigationProp, SearchStackParamList } from '../../../../../types/stack';
+import { useWeather } from '../../../../../hooks/useWeather';
+import { Payload } from '../../../../../types/api';
+import { Location } from '../../../../../slices/location';
 
 // svg
-import LeftArrow from '../../../assets/imgs/common/chevron_left.svg';
-import Delete from '../../../assets/imgs/common/icon_search_delete.svg';
-import SearchIcon from '../../../assets/imgs/common/icon_search.svg';
-import MiniSearchIcon from '../../../assets/imgs/common/icon_search_mini.svg';
+import LeftArrow from '../../../../../assets/imgs/common/chevron_left.svg';
+import Delete from '../../../../../assets/imgs/common/icon_search_delete.svg';
+import SearchIcon from '../../../../../assets/imgs/common/icon_search.svg';
+import MiniSearchIcon from '../../../../../assets/imgs/common/icon_search_mini.svg';
 
 interface Props {
-	route: RouteProp<MainTabParamList, 'Search'>
+	route: RouteProp<SearchStackParamList, 'Search'>
 }
 
 const Search = ({ route }: Props): React.JSX.Element => {
-	const navigation = useNavigation<MainTabNavigationProp>();
+	const navigation = useNavigation<SearchStackNavigationProp>();
 	const beforeScreen: string = route.params?.before ?? '';
 	const { searchLocation } = useWeather();
 	const [tabType, setTabType] = useState<number>(0); // 0: 최근 검색, 1: 즐겨찾기
@@ -85,7 +85,7 @@ const Search = ({ route }: Props): React.JSX.Element => {
 					{ locationList && locationList.length > 0 ? (
 							<Pressable>
 								{ locationList.map((item: Location, index: number) => (
-									<Pressable style={{ backgroundColor: '#ffffff' }} key={ index }>
+									<Pressable style={{ backgroundColor: '#ffffff' }} key={ index } onPress={ () => navigation.navigate('SearchDetail', { lat: item.lat, lon: item.lon, name: item.locationName ?? '' }) }>
 										<View style={ styles.searchList }>
 											<MiniSearchIcon style={{ marginRight: 10 }} />
 											<Text style={{ fontSize: 16, fontFamily: 'NotoSansKR-Regular', color: '#999999' }}>{ item.locationName }</Text>
@@ -104,7 +104,7 @@ const Search = ({ route }: Props): React.JSX.Element => {
 					{ locationList && locationList.length > 0 ? (
 							<Pressable>
 								{ locationList.map((item: Location, index: number) => (
-									<Pressable key={ index }>
+									<Pressable key={ index } onPress={ () => navigation.navigate('SearchDetail', { lat: item.lat, lon: item.lon, name: item.locationName ?? ''  }) }>	
 										<View style={ styles.searchList }>
 											<MiniSearchIcon style={{ marginRight: 10 }} />
 											<Text style={{ fontSize: 16, fontFamily: 'NotoSansKR-Regular', color: '#999999' }}>{ item.locationName }</Text>

@@ -80,7 +80,7 @@ export const useWeather = (): JsonsHook => {
     }
     
     // get weather
-    const getWeather = async (lattitude: number, longitude: number, type: number): Promise<Payload> => { // 0: favorite, 1: current
+    const getWeather = async (lattitude: number, longitude: number, type: number): Promise<Payload> => { // 0: favorite, 1: current, 2: search
         try {
             const res: any = await axios.post(`${url}/api/weather/getMainWeather`, {
                 location: {
@@ -100,7 +100,16 @@ export const useWeather = (): JsonsHook => {
                 return payload
             }
 
-            saveCurrentWeather(res.data)
+            if (type === 1) saveCurrentWeather(res.data)
+            else if (type === 2) {
+                const payload: Payload = {
+                    code: 200,
+                    weather: res.data.weather,
+                }
+
+                return payload
+            }
+            
 
             const payload: Payload = {
                 code: 200

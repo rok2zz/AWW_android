@@ -36,5 +36,14 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+
+      <meta-data
+            android:name="com.naver.maps.map.NCP_KEY_ID"
+            android:value="yto9g2jmjx" />
+      <!-- (legacy) 4월 17일 이전에 AI NAVER API를 사용하던 지도 API 고객 전용 -->
+      <!-- https://www.ncloud.com/support/notice/all/1930?searchKeyword=map&page=1 -->
+      <meta-data
+          android:name="com.naver.maps.map.CLIENT_ID"
+          android:value="yto9g2jmjx" />
     </application>
 </manifest>

@@ -14,9 +14,7 @@ export type RootStackNavigationProp = NativeStackNavigationProp<RootStackParamLi
 // MainTab
 export type MainTabParamList = {
 	HomeStack: undefined,
-	Search: {
-		before?: string
-	},
+	SearchStack: undefined,
 	Alarm: undefined,
 	ScheduleStack: undefined,
 	Routine: undefined,
@@ -45,5 +43,20 @@ export type ScheduleStackParamList = {
 	ScheduleIndex: undefined
 }
 
-export type ScheduleScreenName = keyof ScheduleStackParamList
+export type ScheduleStackScreenName = keyof ScheduleStackParamList
 export type ScheduleNavigationProp = NativeStackNavigationProp<ScheduleStackParamList>
+
+export type SearchStackParamList = {
+	Search: {
+		before?: string
+	},
+	SearchDetail: {
+		lat: number,
+		lon: number,
+		name: string
+	},
+	
+}
+
+export type SearchStackScreenName = keyof SearchStackParamList
+export type SearchStackNavigationProp = NativeStackNavigationProp<SearchStackParamList>

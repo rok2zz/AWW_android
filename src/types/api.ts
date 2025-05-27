@@ -1,5 +1,6 @@
 import { Location } from "../slices/location"
 import { Schedule } from "../slices/schedule"
+import { Weather } from "../slices/weather"
 
 // async storage
 export interface LoginData {
@@ -37,7 +38,8 @@ export interface Payload {
 
     scheduleList?: Schedule[],
     schedule?: Schedule,
-    locationList?: Location[]
+    locationList?: Location[],
+    weather?: Weather,
 }
 
 // weather

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Dimensions, Image, LayoutChangeEvent, Linking, PermissionsAndroid, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Swiper from 'react-native-swiper';
-import { HomeStackNavigationProp, MainTabNavigationProp, RootStackNavigationProp, ScheduleNavigationProp } from '../../../../../types/stack';
+import { HomeStackNavigationProp, MainTabNavigationProp, RootStackNavigationProp, ScheduleNavigationProp, SearchStackNavigationProp } from '../../../../../types/stack';
 import { useSchedule } from '../../../../../hooks/useSchedule';
 import { useAndroidId } from '../../../../../hooks/useAuth';
 import { FavoriteLocation, Location } from '../../../../../slices/location';
@@ -25,6 +25,7 @@ import Geolocation from '@react-native-community/geolocation';
 const Home = (): React.JSX.Element => {
 	const navigation = useNavigation<HomeStackNavigationProp>();
     const tabNavigation = useNavigation<MainTabNavigationProp>();
+	const searchNavigation = useNavigation<SearchStackNavigationProp>();
 	const { getMainScheduleList } = useSchedule();
 	const { getWeather } = useWeather(); 
 	const androidId: string = useAndroidId();
@@ -246,7 +247,7 @@ const Home = (): React.JSX.Element => {
 						</Swiper>
 					</View>
 				) : (
-					<Pressable style={ styles.contents } onPress={ () => tabNavigation.navigate('Search', { before: '' }) }>
+					<Pressable style={ styles.contents } onPress={ () => searchNavigation.navigate('Search', { before: '' }) }>
 						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
 							<Plus style={{ marginRight: 10 }} />
 							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>즐겨찾는 위치 추가</Text>

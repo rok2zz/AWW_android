@@ -20,7 +20,7 @@ interface Props {
 const Search = ({ route }: Props): React.JSX.Element => {
 	const navigation = useNavigation<SearchStackNavigationProp>();
 	const beforeScreen: string = route.params?.before ?? '';
-	const { searchLocation } = useWeather();
+	const { searchAddress, searchPlace } = useWeather();
 	const [tabType, setTabType] = useState<number>(0); // 0: 최근 검색, 1: 즐겨찾기
 	const [searchText, setSearchText] = useState<string>('');
 	const [isSearched, setIsSearched] = useState<boolean>(false);
@@ -39,7 +39,7 @@ const Search = ({ route }: Props): React.JSX.Element => {
 	
 	const handleSearch = async () => {
 		if (searchText === '') return
-		const payload: Payload = await searchLocation(searchText, 100);
+		const payload: Payload = await searchPlace(searchText, 100);
 
 		if (payload.locationList) {
 			setLocationList(payload.locationList);

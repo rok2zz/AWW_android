@@ -10,6 +10,8 @@ import { Forecasts, Weather } from '../../../../../slices/weather';
 import { Schedule } from '../../../../../slices/schedule';
 import { Payload } from '../../../../../types/api';
 import { useCurrentWeather, useWeather } from '../../../../../hooks/useWeather';
+import { getAirQuality, getAirQuarityColor, openAppSettings } from '../../../../../hooks/funcions';
+import Geolocation from '@react-native-community/geolocation';
 
 // svg
 import Dot from "../../../../../assets/imgs/common/paging_dot.svg"
@@ -18,7 +20,6 @@ import FilledStar from "../../../../../assets/imgs/schedule/icon_filled_star.svg
 import Plus from "../../../../../assets/imgs/schedule/icon_plus.svg"
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add.svg"
 import WeatherIcon from '../../../../../components/WeatherIcon';
-import Geolocation from '@react-native-community/geolocation';
 
 
 
@@ -93,10 +94,6 @@ const Home = (): React.JSX.Element => {
 		}
 	}, [location])
 
-	useEffect(() => {
-		console.log(scheduleList)
-	}, [scheduleList])
-
 	// get lat, lon
 	const getGeolocation = async () => {
 		if (Platform.OS === 'android') {
@@ -144,16 +141,7 @@ const Home = (): React.JSX.Element => {
 		  );
 	}
 
-	const openAppSettings = () => {
-		Alert.alert(
-			"알림 권한 필요",
-			"앱에서 알림을 받으려면 설정에서 권한을 허용해주세요.",
-			[
-				{ text: "취소", style: "cancel" },
-				{ text: "설정으로 이동", onPress: () => Linking.openSettings() }
-			]
-		);
-	};
+
 
 	const getMainSchedule = async () => {
 		const payload: Payload = await getMainScheduleList(androidId);
@@ -165,41 +153,11 @@ const Home = (): React.JSX.Element => {
 
 	const getCurrentLocationWeather = async () => {
 		console.log(location)
-		const payload: Payload = await getWeather(location.lat, location.lon, 0);
+		const payload: Payload = await getWeather(location.lat, location.lon, 1);
 	}
 
 	const getFavoriteLocationWeather = async () => {
 		const payload: Payload = await getWeather(location.lat, location.lon, 0);
-	}
-
-	const getAirQuality = (airQuality: number) => {
-		switch (airQuality) {
-			case 1:
-				return '좋음';
-			case 2:
-				return '보통';
-			case 3:
-				return '나쁨';
-			case 4:
-				return '매우 나쁨';
-			default:
-				return '보통'
-		}
-	}
-
-	const getAirQuarityColor = (airQuality: number) => {
-		switch (airQuality) {
-			case 1:
-				return '#50a0ff'
-			case 2:
-			  	return '#51ff00';
-			case 3:
-			  	return '#ff9600';
-			case 4:
-			  	return '#ff4c4c';
-			default:
-			  	return '#ffffff'; // 기본 색상
-		}
 	}
 
 	return (
@@ -247,7 +205,7 @@ const Home = (): React.JSX.Element => {
 						</Swiper>
 					</View>
 				) : (
-					<Pressable style={ styles.contents } onPress={ () => searchNavigation.navigate('Search', { before: '' }) }>
+					<Pressable style={ styles.contents } onPress={ () => searchNavigation.navigate('SearchStack' as any, { before: '' }) }>
 						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
 							<Plus style={{ marginRight: 10 }} />
 							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>즐겨찾는 위치 추가</Text>
@@ -327,7 +285,7 @@ const Home = (): React.JSX.Element => {
 
 								if (index < 5 && item.status == 1) {
 									return (
-										<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleDetail', params:{ id: item.id }}) } key={ index }>
+										<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleDetail', params: { id: item.id }}) } key={ index }>
 											<View style={[ styles.rowContainer, { padding: 20 }]}>
 												<Text style={[ styles.regularText, { flex: 1, fontSize: 16 }]}>{ item.title }</Text>
 												<Text style={[ styles.regularText, { fontSize: 14, color: 'rgba(255, 255, 255, 0.5)'} ]}>{ getTime(item.earliestStart ?? '') }</Text>

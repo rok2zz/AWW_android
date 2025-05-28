@@ -191,7 +191,7 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                             <Text style={[ styles.regularText, { fontSize: 16 }]}>시간별 날씨</Text>
                         </View>
                         <ScrollView style={{ marginTop: 20, marginHorizontal: 5 }} horizontal showsHorizontalScrollIndicator={ false }>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={ false }>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={ false }>
 								{ weather.hourlyForecasts && weather.hourlyForecasts.map((item: Forecasts, index: number) => {
                                     const getTime = (): string => {
                                         const hour = new Date(item.dateTime).getHours();
@@ -384,7 +384,7 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
 
                                         <View style={{ width: 100, alignItems: 'flex-start', marginLeft: 10 }}>
                                             <Text style={[ styles.regularText, { fontSize: 12, color: 'rgba(255, 255, 255, 0.5)'} ]}>기압</Text>
-                                            <Text style={[ styles.regularText, { fontSize: 12 }]}>{ weather.indexes.pressure.toLocaleString() } hPa</Text>
+                                            <Text style={[ styles.regularText, { fontSize: 12 }]}>{ Math.round(weather.indexes.pressure).toLocaleString() } hPa</Text>
                                         </View>
                                     </View>
 

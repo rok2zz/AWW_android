@@ -40,7 +40,10 @@ export type ScheduleStackParamList = {
 	ScheduleDetail: {
 		id: number
 	},
-	ScheduleIndex: undefined
+	ScheduleIndex: undefined,
+	SearchLocation: {
+		id: number
+	}
 }
 
 export type ScheduleStackScreenName = keyof ScheduleStackParamList

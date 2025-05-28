@@ -16,6 +16,14 @@ export interface Schedule {
     todoList?: Todo[]
 }
 
+interface TodoTemperature {
+    dateTime: string,
+    value: number | null,
+    minimum: number | null,
+    maximum: number | null,
+    weatherIcon: number
+}
+
 export interface Todo {
     type: number,
     id?: number,
@@ -25,8 +33,9 @@ export interface Todo {
 
     location?: string,
     lat?: number,
-    long?: number,
-    temperature?: number,
+    lon?: number,
+    temperatureValue?: TodoTemperature | null,
+    temperatureTime?: string | null,
 
     handle: boolean
 }

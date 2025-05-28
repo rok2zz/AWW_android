@@ -91,7 +91,6 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
             endTime: 'new Date()',
 
             location: '',
-            temperature: 0,
             
             handle: false
         }]
@@ -565,13 +564,13 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                                                 <Text style={ styles.regularText }>{ getPickedTime(item.endTime ?? '', false) }</Text>
                                                             </Pressable>
                                                         </View>
-                                                        <View style={ styles.dateContainer }>
+                                                        <Pressable style={ styles.dateContainer }>
                                                             <View style={[ styles.rowContainer, { flex: 1 }]}>
                                                                 { item.location ? <SelectedLocation style={ styles.icon } /> : <Location style={ styles.icon } /> }
                                                             
                                                                 <Text style={ styles.regularText }>장소</Text>
                                                             </View>
-                                                        </View>
+                                                        </Pressable>
                                                     </View>
                                                    
 

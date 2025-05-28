@@ -9,7 +9,8 @@ import { RootState } from "../slices";
 import { renameKeys } from "./funcions";
 
 interface JsonsHook {
-    searchLocation: (text: string, offset: number) => Promise<Payload>,
+    searchPlace: (text: string, offset: number) => Promise<Payload>,
+    searchAddress: (text: string, offset: number) => Promise<Payload>,
     getWeather: (lattitude: number, longitude: number, type: number) => Promise<Payload>,
 }
 
@@ -39,7 +40,53 @@ export const useWeather = (): JsonsHook => {
     const { saveCurrentWeather } = useWeatherActions()
 
     // search location
-    const searchLocation = async (text: string, offset: number): Promise<Payload> => {
+    const searchPlace = async (text: string, offset: number): Promise<Payload> => {
+        const keyMap: Record<string, string> = {
+            place_name: 'locationName',
+            address_name: 'placeAddress',
+            x: 'lon',
+            y: 'lat',
+        };
+
+        try {
+            console.log(text)
+            const res: any = await axios.get(
+                `https://dapi.kakao.com/v2/local/search/keyword.json?query=${text}`,
+                {
+                    headers: {
+                        Authorization: 'KakaoAK 4f0389970c58fb3c2cbaae4a0a2445e3'
+                    },
+                }
+            );
+
+
+            console.log(res.data)
+
+
+            if (res.data.documents) { 
+                const mappedLocationList = renameKeys(res.data.documents, keyMap);
+
+                const payload: Payload = {
+                    code: res.data.code,
+                    locationList: mappedLocationList
+                }
+
+                return payload
+            }
+        } catch (error: any) {
+            errorHandler(error)
+        }
+
+        const payload: Payload = {
+            code: -1,
+            msg: '서버에 연결할 수 없습니다.'
+        }
+
+        return payload
+    }
+
+    // search location
+    const searchAddress = async (text: string, offset: number): Promise<Payload> => {
         const keyMap: Record<string, string> = {
             address_name: 'locationName',
             x: 'lon',
@@ -84,12 +131,10 @@ export const useWeather = (): JsonsHook => {
         try {
             const res: any = await axios.post(`${url}/api/weather/getMainWeather`, {
                 location: {
-                    lat: 37.74913611,
-                    lon: 128.8784972
+                    lat: lattitude,
+                    lon: longitude
                 }
             })
-
-            console.log(res.data)
 
             if (res.data.code !== 200) {
                 const payload: Payload = {
@@ -104,7 +149,7 @@ export const useWeather = (): JsonsHook => {
             else if (type === 2) {
                 const payload: Payload = {
                     code: 200,
-                    weather: res.data.weather,
+                    weather: res.data,
                 }
 
                 return payload
@@ -128,7 +173,7 @@ export const useWeather = (): JsonsHook => {
         return payload
     }   
 
-    return { searchLocation, getWeather }
+    return { searchPlace, searchAddress, getWeather }
 }
 
 const errorHandler = (error: any): void => {

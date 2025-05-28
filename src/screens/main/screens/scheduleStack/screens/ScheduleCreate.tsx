@@ -15,6 +15,7 @@ import EventAdd from "../../../../../assets/imgs/schedule/icon_event_add.svg"
 import SelectedLocation from "../../../../../assets/imgs/schedule/icon_location_selected.svg"
 import Location from "../../../../../assets/imgs/schedule/icon_location_non_selected.svg"
 import TodoDelete from "../../../../../assets/imgs/schedule/icon_todo_delete.svg"
+import TodoSearchPlace from "../../../../../components/TodoSearchPlace";
 
 interface ToggleProps {
     value: boolean,
@@ -224,7 +225,7 @@ const ScheduleCreate = (): JSX.Element => {
 
                             if (payload.code === 200) {
                                 Alert.alert('알림', '일정이 생성되었습니다.')
-                                navigation.goBack();
+                                navigation.popToTop();
                             }
                         }
                     },
@@ -236,6 +237,7 @@ const ScheduleCreate = (): JSX.Element => {
     return (
         <View style={ styles.wrapper }>
             <TabHeader title="일정 추가하기" type={ 0 } isFocused={ false } before={""} />
+            <TodoSearchPlace />
             <ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
                 <View style={[ styles.blockContainer, { paddingVertical: 0 }]}>
                     {/* title */}
@@ -404,13 +406,13 @@ const ScheduleCreate = (): JSX.Element => {
                                             <Text style={ styles.regularText }>{ getPickedTime(item.endTime ?? '', false) }</Text>
                                         </Pressable>
                                     </View>
-                                    <View style={ styles.dateContainer }>
+                                    <Pressable style={ styles.dateContainer }  onPress={ () => {}}>
                                         <View style={[ styles.rowContainer, { flex: 1 }]}>
                                             { item.location ? <SelectedLocation style={ styles.icon } /> : <Location style={ styles.icon } /> }
                                         
                                             <Text style={ styles.regularText }>장소</Text>
                                         </View>
-                                    </View>
+                                    </Pressable>
 
                                                        {/* show picker */}
                                     { showPicker && (

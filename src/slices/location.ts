@@ -11,7 +11,8 @@ export interface Location {
     locationName?: string,
     lat: number,
     lon: number,
-    locationKey?: string
+    locationKey?: string,
+    placeAddress?: string
 }
 
 interface LocationState {

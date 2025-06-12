@@ -43,7 +43,7 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
 
             
                         if (!isFocused && !event.defaultPrevented) {
-                            if (route.name === 'ShopStack') {
+                            if (route.name === 'ScheduleStack' || route.name === 'SearchStack') {
                                 navigation.reset({ routes: [{ name: route.name }]})
                                 return
                             }
@@ -74,7 +74,7 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
                                             )}
                                         </>
                                     }   
-                                    { index === 2 && 
+                                    {/* { index === 2 && 
                                         <>
                                             { isFocused ? (
                                                 <Alarm style={ styles.icon } width={ 30 } height={ 30 } /> 
@@ -82,8 +82,8 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
                                                 <Alarm style={ styles.icon } width={ 30 } height={ 30 } /> 
                                             )}
                                         </>
-                                    }    
-                                    { index === 3 && 
+                                    }     */}
+                                    { index === 2 && 
                                         <>
                                             { isFocused ? (
                                                 <Schedule style={ styles.icon } width={ 30 } height={ 30 } /> 
@@ -101,7 +101,7 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
                                             )} 
                                         </>
                                     }    */}
-                                    { index === 4 && 
+                                    { index === 3 && 
                                         <>
                                             { isFocused ? (
                                                 <Setting style={ styles.icon } width={ 30 } height={ 30 } /> 
@@ -110,11 +110,11 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
                                             )} 
                                         </>
                                     }   
-                                    { index === 0 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>홈</Text> }
-                                    { index === 1 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>검색</Text> }
-                                    { index === 2 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>알람</Text> }
-                                    { index === 3 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>일정</Text> }
-                                    { index === 4 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>설정</Text> }
+                                    { index === 0 && <Text style={[ styles.regularText]}>홈</Text> }
+                                    { index === 1 && <Text style={[ styles.regularText ]}>검색</Text> }
+                                    {/* { index === 2 && <Text style={[ styles.regularText, isFocused && { fontFamily: 'NotoSansKR-Bold', color: '#121619' } ]}>알람</Text> } */}
+                                    { index === 2 && <Text style={[ styles.regularText ]}>일정</Text> }
+                                    { index === 3 && <Text style={[ styles.regularText ]}>설정</Text> }
                                 </View>
                             </Pressable>
                         </Fragment>

@@ -13,9 +13,6 @@ export const useApi = (): JsonsHook => {
         try {
             const res: any = await axios.get(`http://192.168.1.7:5000/api/weather/getCurrentConditions?lat=${lattitude}&lon=${longitude}`)
             
-            console.log('asdfadd')
-            console.log(res.data[0].Temperature)
-
             const payload: Payload = {
                 code: 1000
             }
@@ -39,8 +36,6 @@ export const useApi = (): JsonsHook => {
         try {
             const res: any = await axios.get(`http://192.168.1.7:5000/api/weather/getForecasts?lat=37.715133&lon=126.734086`)
             
-            console.log(res.data.daily)
-
             const payload: Payload = {
                 code: 1000
             }

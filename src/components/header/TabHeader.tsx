@@ -54,6 +54,8 @@ const TabHeader = ({ title, type, isFocused, before }: Props ): JSX.Element => {
     }, [isFocused]);
 
     const onPress = () => {
+            console.log('asdf')
+
         if (before === '') {
             navigation.goBack();
             return
@@ -68,7 +70,7 @@ const TabHeader = ({ title, type, isFocused, before }: Props ): JSX.Element => {
                 <Pressable style={ styles.button } onPress={ onPress }>
                     { type === 0 || type === 4 ? <LeftArrow /> : <WhiteArrow /> }
                 </Pressable>
-                <Text style={[ styles.title, { color: fontColor }, title === '스크린예약' && { marginLeft: 15, marginRight: 0 }]}>{ title }</Text>
+                <Text style={[ styles.title, { color: fontColor }]}>{ title }</Text>
 
                 {/* { title === '스크린예약' && 
                     <Pressable style={ styles.manageBtn } onPress={ () => navigation.navigate('ManageReservation') }> 

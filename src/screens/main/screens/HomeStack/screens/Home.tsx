@@ -4,13 +4,13 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Swiper from 'react-native-swiper';
 import { HomeStackNavigationProp, MainTabNavigationProp, RootStackNavigationProp, ScheduleNavigationProp, SearchStackNavigationProp } from '../../../../../types/stack';
 import { useSchedule } from '../../../../../hooks/useSchedule';
-import { useAndroidId } from '../../../../../hooks/useAuth';
-import { FavoriteLocation, Location } from '../../../../../slices/location';
+import { useAndroidId, useSetting } from '../../../../../hooks/useAuth';
+import { FavoriteLocation, PlaceLocation } from '../../../../../slices/location';
 import { Forecasts, Weather } from '../../../../../slices/weather';
 import { Schedule } from '../../../../../slices/schedule';
 import { Payload } from '../../../../../types/api';
 import { useCurrentWeather, useWeather } from '../../../../../hooks/useWeather';
-import { getAirQuality, getAirQuarityColor, openAppSettings } from '../../../../../hooks/funcions';
+import { convertTemperature, formatHour, getAirQuality, getAirQuarityColor, openAppSettings } from '../../../../../hooks/funcions';
 import Geolocation from '@react-native-community/geolocation';
 
 // svg
@@ -20,6 +20,7 @@ import FilledStar from "../../../../../assets/imgs/schedule/icon_filled_star.svg
 import Plus from "../../../../../assets/imgs/schedule/icon_plus.svg"
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add.svg"
 import WeatherIcon from '../../../../../components/WeatherIcon';
+import { Setting } from '../../../../../slices/auth';
 
 
 
@@ -29,10 +30,11 @@ const Home = (): React.JSX.Element => {
 	const searchNavigation = useNavigation<SearchStackNavigationProp>();
 	const { getMainScheduleList } = useSchedule();
 	const { getWeather } = useWeather(); 
+	const userSetting: Setting = useSetting();
 	const androidId: string = useAndroidId();
 	const isFocused: boolean = useIsFocused();
 
-	const [location, setLocation] = useState<Location>({ lat: 0, lon: 0 })
+	const [location, setLocation] = useState<PlaceLocation>({ lat: 0, lon: 0 })
 	const [favoriteLocation, setFavoriteLocation] = useState<FavoriteLocation[]>([{ key: '1', lattitude: 1, longitude: 1 },{ key: '1', lattitude: 1, longitude: 1 }])
 	const [weather, setWeather] = useState<any>({
 		key: '5',
@@ -141,8 +143,6 @@ const Home = (): React.JSX.Element => {
 		  );
 	}
 
-
-
 	const getMainSchedule = async () => {
 		const payload: Payload = await getMainScheduleList(androidId);
 
@@ -151,11 +151,12 @@ const Home = (): React.JSX.Element => {
 		}
 	};
 
+	// 현재 위치 날씨
 	const getCurrentLocationWeather = async () => {
-		console.log(location)
 		const payload: Payload = await getWeather(location.lat, location.lon, 1);
 	}
-
+	
+	// 즐겨찾기 날씨
 	const getFavoriteLocationWeather = async () => {
 		const payload: Payload = await getWeather(location.lat, location.lon, 0);
 	}
@@ -205,7 +206,7 @@ const Home = (): React.JSX.Element => {
 						</Swiper>
 					</View>
 				) : (
-					<Pressable style={ styles.contents } onPress={ () => searchNavigation.navigate('SearchStack' as any, { before: '' }) }>
+					<Pressable style={ styles.contents } onPress={ () => tabNavigation.navigate('SettingStack' as any, { screen: 'Favorite' }) }>
 						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
 							<Plus style={{ marginRight: 10 }} />
 							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>즐겨찾는 위치 추가</Text>
@@ -216,7 +217,7 @@ const Home = (): React.JSX.Element => {
 				{/* current area */}
 				{ currentWeather && (
 					<View style={[ styles.contents, { padding: 0 }]}>
-						<Pressable style={{ paddingHorizontal: 20, paddingTop: 20 }} onPress={ () => navigation.navigate('WeatherDetail', { weather: currentWeather }) }>
+						<Pressable style={{ paddingHorizontal: 20, paddingTop: 20 }} onPress={ () => navigation.navigate('WeatherDetail', { weather: currentWeather, type: 'current' }) }>
 							<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
 								<View style={[ styles.rowContainer, { flex: 1 }]}>
 									<FilledStar style={ styles.icon } />
@@ -231,11 +232,11 @@ const Home = (): React.JSX.Element => {
 							<View style={[ styles.rowContainer, { paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#cccccc' }]}>
 								<View style={[ styles.rowContainer, { flex: 1 }]}>
 									<WeatherIcon index={ 1 } size={ 50 } />
-									<Text style={ styles.ExtraBoldText }>{ currentWeather.temperature.value.toFixed(0) }°</Text>
+									<Text style={ styles.ExtraBoldText }>{  convertTemperature(currentWeather.temperature.value, userSetting.type) }°{ userSetting.type === 0 ? 'C' : 'F' }</Text>
 								</View>
-								<View>
+								<View style={{ width: '50%' }}>
 									<Text style={ styles.regularText }>{ currentWeather.dailyForecasts[0]?.shortPhrase ?? '' }</Text>
-									<Text style={ styles.regularText }>최저 { currentWeather.temperature.minimum.toFixed(0) }° / 최고 { currentWeather.temperature.maximum.toFixed(0) }°</Text>	
+									<Text style={ styles.regularText }>최저 { convertTemperature(currentWeather.temperature.minimum, userSetting.type) }° / 최고 { convertTemperature(currentWeather.temperature.maximum, userSetting.type) }°</Text>	
 								</View>
 							</View>
 						</Pressable>
@@ -246,7 +247,7 @@ const Home = (): React.JSX.Element => {
 									return (
 										<View key={ index }>
 											<View style={ styles.hourlyWeather }>
-												<Text style={[ styles.regularText, { fontSize: 12, marginBottom: 13 }]}>오후 { new Date(item.dateTime).getHours() }시</Text>
+												<Text style={[ styles.regularText, { fontSize: 12, marginBottom: 13 }]}>{ formatHour(new Date(item.dateTime), userSetting.timeType) }</Text>
 												<WeatherIcon index={ item.weatherIcon } size={ 40 } />
 												<Text style={[ styles.regularText, { marginTop: 10 }]}>{ item.temperature?.toFixed(0) }°</Text>
 											</View>
@@ -276,11 +277,18 @@ const Home = (): React.JSX.Element => {
 							{ scheduleList && scheduleList.length > 0 && scheduleList.map(( item: Schedule, index: number ) => {
 								const getTime = (date: string): string => {
 									const start = new Date(date);
-									const hour = start.getHours();
-									const minute = start.getMinutes();
+									const hours = start.getHours();
+									const minutes = start.getMinutes();
 									const days = ['일', '월', '화', '수', '목', '금', '토'];
 
-									return `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]}) ${hour < 10 ? '0' + hour : hour }:${minute < 10 ? '0' + minute : minute}`;
+									if (userSetting.timeType === 0) {
+										const ampm = hours >= 12 ? '오후' : '오전';
+										const formattedHours = hours % 12 || 12; // 0을 12로 변환
+								
+										return `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]}) ${ampm} ${formattedHours}시 ${minutes < 10 ? '0' + minutes: minutes}분`;
+									}
+								
+									return `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]}) ${hours < 10 ? '0' + hours : hours }:${minutes < 10 ? '0' + minutes: minutes}`;
 								}
 
 								if (index < 5 && item.status == 1) {

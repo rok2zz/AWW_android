@@ -31,13 +31,20 @@ export interface Todo {
     startTime: string,
     endTime?: string,
 
-    location?: string,
+    placeName?: string,
+    placeAddress?: string, 
     lat?: number,
     lon?: number,
     temperatureValue?: TodoTemperature | null,
     temperatureTime?: string | null,
+    locationKey?: string,
 
     handle: boolean
+}
+
+export interface TodoTemperatureResponse {
+    temperatureValue?: TodoTemperature | null,
+    temperatureTime?: string | null,
 }
 
 interface ScheduleState {

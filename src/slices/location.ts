@@ -7,32 +7,41 @@ export interface FavoriteLocation {
     longitude: number
 }
 
-export interface Location {
+export interface PlaceLocation {
     locationName?: string,
     lat: number,
     lon: number,
     locationKey?: string,
+    placeName?: string,
     placeAddress?: string
 }
 
 interface LocationState {
-    favoriteLocation: FavoriteLocation[]
+    favoriteLocation: PlaceLocation[]
+    searchedPlace: PlaceLocation
 }
 
 const initialState: LocationState = {
     favoriteLocation: [{
-        key: '0',
-        lattitude: 0,
-        longitude: 0
-    }]
+        lat: 0,
+        lon: 0
+    }],
+    searchedPlace: {
+        lat: 0,
+        lon: 0,
+        placeName: ''
+    }
 }
 
 const locationSlice = createSlice ({
     name: 'location',
     initialState,
     reducers: {
-        saveFavoriteLocation(state, action: PayloadAction<FavoriteLocation[]>) {
+        saveFavoriteLocation(state, action: PayloadAction<PlaceLocation[]>) {
             state.favoriteLocation = action.payload
+        },
+        saveSearchedPlace(state, action: PayloadAction<PlaceLocation>) {
+            state.searchedPlace = action.payload
         },
         clearLocation() {
             return initialState
@@ -41,4 +50,4 @@ const locationSlice = createSlice ({
 })
 
 export default locationSlice.reducer
-export const { saveFavoriteLocation, clearLocation } = locationSlice.actions
+export const { saveFavoriteLocation, saveSearchedPlace, clearLocation } = locationSlice.actions

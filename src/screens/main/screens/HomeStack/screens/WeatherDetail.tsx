@@ -1,16 +1,26 @@
 import { Alert, Dimensions, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native"
 import { RouteProp, useNavigation } from "@react-navigation/native";
-import { HomeStackNavigationProp, HomeStackParamList } from "../../../../../types/stack";
+import { HomeStackNavigationProp, HomeStackParamList, MainTabNavigationProp } from "../../../../../types/stack";
 import { useEffect, useState } from "react";
-import { Forecasts } from "../../../../../slices/weather";
+import { Forecasts, Weather } from "../../../../../slices/weather";
 import WeatherIcon from "../../../../../components/WeatherIcon";
 import Svg, { Circle, Path } from "react-native-svg";
+import { getAirQuality, getAirQuarityColor, getMoonPhase } from "../../../../../hooks/funcions";
 
 // svg 
 import LeftArrow from '../../../../../assets/imgs/common/chevron_left_white.svg'
 import LocationIcon from '../../../../../assets/imgs/weather/icon_location_white.svg'
 import Quater from '../../../../../assets/imgs/weather/img_quater.svg'
 import Arrow from '../../../../../assets/imgs/weather/img_arrow.svg'
+import Full from '../../../../../assets/imgs/weather/icon_moon_full.svg'
+import New from '../../../../../assets/imgs/weather/icon_moon_new.svg'
+import FirstQuarter from '../../../../../assets/imgs/weather/icon_moon_first_quarter.svg'
+import ThirdQuarter from '../../../../../assets/imgs/weather/icon_moon_third_quater.svg'
+import WaningGibbous from '../../../../../assets/imgs/weather/icon_moon_waning_gibbous.svg'
+import WaxingGibbous from '../../../../../assets/imgs/weather/icon_moon_waxing_gibbous.svg'
+import WaningCrescent from '../../../../../assets/imgs/weather/icon_moon_waning_crescent.svg'
+import WaxingCrescent from '../../../../../assets/imgs/weather/icon_moon_waxing_crescent.svg'
+import { PlaceLocation } from "../../../../../slices/location";
 
 
 interface Props {
@@ -26,7 +36,7 @@ interface sunPhase {
 
 const WeatherDetail = ({ route }: Props): JSX.Element => {
     const navigation = useNavigation<HomeStackNavigationProp>();
-    const weather = route.params?.weather;
+    const weather: Weather = route.params?.weather;
     const [showHeader, setShowHeader] = useState<boolean>(false);
     const [windWidth, setWindWidth] = useState<number>(0);
 
@@ -37,7 +47,7 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
         angle: 0
     });    
 
-    const arcWidth = Dimensions.get('window').width - 120; // 원의 지름
+    const arcWidth = Dimensions.get('window').width - 100; // 원의 지름
     const radius = arcWidth / 2 - 10; // 반지름: padding 고려
     const arcLength = Math.PI * radius;
     const centerX = arcWidth / 2;
@@ -48,8 +58,8 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
         if (weather.dailyForecasts) {
             const now = new Date();
             const hour = now.getHours();
-            const sunRiseHour = new Date(weather.dailyForecasts[0].sunRise ?? '').getHours();
-            const sunSetHour = new Date(weather.dailyForecasts[0].sunSet ?? '').getHours();
+            const sunRiseHour = new Date(weather.dailyForecasts[0]?.sunRise ?? '').getHours();
+            const sunSetHour = new Date(weather.dailyForecasts[0]?.sunSet ?? '').getHours();
             const ratio = (hour - sunRiseHour) / (sunSetHour - sunRiseHour);
 
             const clampedRatio = Math.max(0, Math.min(1, ratio));
@@ -65,7 +75,6 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
             const sunX = baseX + normalX * 5;
             const sunY = baseY + normalY * 5;
 
-
             setSunPhase({
                 sunX,
                 sunY,
@@ -73,7 +82,6 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                 angle
             })
         }
-
     },[weather])
 
     const handleScroll = (e: any) => {
@@ -86,59 +94,27 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
         }
     }
 
-    const getAirQuality = (airQuality: number) => {
-		switch (airQuality) {
-			case 1:
-				return '좋음';
-			case 2:
-				return '보통';
-			case 3:
-				return '나쁨';
-			case 4:
-				return '매우 나쁨';
-            case 5:
-                return '위험';
-			default:
-				return '보통'
-		}
-	}
-
-	const getAirQuarityColor = (airQuality: number) => {
-		switch (airQuality) {
-			case 1:
-				return '#50a0ff'
-			case 2:
-			  	return '#51ff00';
-			case 3:
-			  	return '#ff9600';
-			case 4:
-			  	return '#ff4c4c';
-			default:
-			  	return '#ffffff'; // 기본 색상
-		}
-	}
-
-    const getMoonPhase = (moonPhase: string): string => {
+    const MoonIcon = ( {moonPhase } : { moonPhase : string }): JSX.Element => {
         switch (moonPhase) {
             case 'New':
-                return '삭'
+                return <New width={ 20 } height={ 20 } />
             case 'WaxingCrescent':
-                return '초승달'
+                return <WaxingCrescent width={ 20 } height={ 20 } />
             case 'FirstQuarter':
-                return '상현달'
+                return <FirstQuarter width={ 20 } height={ 20 } />
             case 'WaxingGibbous':
-                return '상현과 보름 사이'
+                return <WaxingGibbous width={ 20 } height={ 20 } />
             case 'Full':
-                return '보름달'
+                return <Full width={ 20 } height={ 20 } />
             case 'WaningGibbous':
-                return '보름과 하현 사이'
+                return <WaningGibbous width={ 20 } height={ 20 } />
             case 'LastQuarter':
-                return '하현달'
+                return <ThirdQuarter width={ 20 } height={ 20 } />
             case 'WaningCrescent':
-                return '그믐달'
+                return <WaningCrescent width={ 20 } height={ 20 } />
             default: 
-                return moonPhase
-        }
+                return <></>
+        }     
     }
 
     const getSunPhase = (time: string) => {
@@ -328,7 +304,8 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                             </View>
                             <View style={{ marginTop: 20 }}>
                                 <View style={ [ styles.rowContainer, { justifyContent: 'flex-end' }]}>
-                                    <Text style={[ styles.regularText, { fontSize: 12 }]}>{ getMoonPhase(weather.dailyForecasts[0]?.moonPhase ?? '') }</Text>   
+                                    <Text style={[ styles.regularText, { fontSize: 12, marginRight: 5 }]}>{ getMoonPhase(weather.dailyForecasts[0]?.moonPhase ?? '') }</Text>   
+                                    <MoonIcon moonPhase={ weather.dailyForecasts[0].moonPhase ?? ''} />
                                 </View>
 
                                 <View style={{ alignItems: 'center' }}>
@@ -388,7 +365,7 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                                         </View>
                                     </View>
 
-                                    <View style={[ styles.sunPhase, { width: arcWidth - 45 }]}>
+                                    <View style={[ styles.sunPhase, { width: arcWidth - 50 }]}>
                                         <View style={{ alignItems: 'flex-start' }}>
                                             <Text style={[ styles.regularText, { fontSize: 10, color: 'rgba(255, 255, 255, 0.5)' }]}>일출</Text>
                                             <Text style={[ styles.regularText, { fontSize: 12 }]}>{ getSunPhase(weather.dailyForecasts[0]?.sunRise ?? '') }</Text>
@@ -482,7 +459,7 @@ const styles = StyleSheet.create({
     },
     sunPhase: {
         position: 'absolute',
-        left: 45,
+        left: 35,
         bottom: 10,
         flexDirection: 'row',
         justifyContent: 'space-between',

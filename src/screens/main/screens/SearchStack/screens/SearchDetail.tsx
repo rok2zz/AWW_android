@@ -38,14 +38,12 @@ const SearchDetaik = ({ route }: Props): JSX.Element => {
 
     useEffect(() => {
         if (locationName !== '') {
-            console.log('asdf')
             getCurrentWeather()
         }
     }, [])
 
     const getCurrentWeather = async () => {
         const payload: Payload = await getWeather(latitude, longitude, 2);
-        console.log(payload)
         if (payload.code === 200) {
             setWeather(payload.weather);
         }
@@ -90,7 +88,7 @@ const SearchDetaik = ({ route }: Props): JSX.Element => {
                     </View>
                     <View style={ styles.rowContainer }>
                         <View style={[ styles.rowContainer, { flex: 1 }]}>
-                            <EmptyStar style={{ marginRight: 5 }} />
+                            {/* <EmptyStar style={{ marginRight: 5 }} /> */}
                             <Text style={ styles.regularText }>{ locationName }</Text>
                         </View>
                         <View style={ styles.rowContainer }>
@@ -111,7 +109,7 @@ const SearchDetaik = ({ route }: Props): JSX.Element => {
                         </View>
                     </View>
 
-                    <Pressable style={ styles.button } onPress={ () => homeNavigation.navigate('HomeStack' as any, { screen: 'WeatherDetail', params: { weather: weather! }}) }>
+                    <Pressable style={ styles.button } onPress={ () => homeNavigation.navigate('HomeStack' as any, { screen: 'WeatherDetail', params: { weather: weather!, type: 'search' }}) }>
                         <Plus style={{ marginRight: 5, transform: [{ translateY: 2 }] }} />
                         <Text style={[ styles.regularText, { color: '#999999' }]}>날씨 상세보기</Text>
                     </Pressable>

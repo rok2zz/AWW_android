@@ -7,11 +7,14 @@ import { bindActionCreators } from "@reduxjs/toolkit";
 import { useMemo } from "react";
 import { RootState } from "../slices";
 import { renameKeys } from "./funcions";
+import { NumberArray } from "react-native-svg";
+import { TodoTemperatureResponse } from "../slices/schedule";
+import { useAndroidId } from "./useAuth";
 
 interface JsonsHook {
-    searchPlace: (text: string, offset: number) => Promise<Payload>,
-    searchAddress: (text: string, offset: number) => Promise<Payload>,
     getWeather: (lattitude: number, longitude: number, type: number) => Promise<Payload>,
+    getPlaceWeather: (lattitude: number, longitude: number, startTime: string) => Promise<Payload>,
+    getFavoriteWeather: () => Promise<Payload>,
 }
 
 export const useWeatherActions = () => {
@@ -36,96 +39,9 @@ export const useWeather = (): JsonsHook => {
     const url = 'http://175.126.73.103:5000'
 
     const language: string = 'ko-kr'
-    const temperatureScale: string = 'celsius' // F: metric
     const { saveCurrentWeather } = useWeatherActions()
+    const userId = useAndroidId()
 
-    // search location
-    const searchPlace = async (text: string, offset: number): Promise<Payload> => {
-        const keyMap: Record<string, string> = {
-            place_name: 'locationName',
-            address_name: 'placeAddress',
-            x: 'lon',
-            y: 'lat',
-        };
-
-        try {
-            console.log(text)
-            const res: any = await axios.get(
-                `https://dapi.kakao.com/v2/local/search/keyword.json?query=${text}`,
-                {
-                    headers: {
-                        Authorization: 'KakaoAK 4f0389970c58fb3c2cbaae4a0a2445e3'
-                    },
-                }
-            );
-
-
-            console.log(res.data)
-
-
-            if (res.data.documents) { 
-                const mappedLocationList = renameKeys(res.data.documents, keyMap);
-
-                const payload: Payload = {
-                    code: res.data.code,
-                    locationList: mappedLocationList
-                }
-
-                return payload
-            }
-        } catch (error: any) {
-            errorHandler(error)
-        }
-
-        const payload: Payload = {
-            code: -1,
-            msg: '서버에 연결할 수 없습니다.'
-        }
-
-        return payload
-    }
-
-    // search location
-    const searchAddress = async (text: string, offset: number): Promise<Payload> => {
-        const keyMap: Record<string, string> = {
-            address_name: 'locationName',
-            x: 'lon',
-            y: 'lat',
-        };
-
-        try {
-            const res: any = await axios.get(
-                `https://dapi.kakao.com/v2/local/search/address.json?query=${text}`,
-                {
-                    headers: {
-                        Authorization: 'KakaoAK 4f0389970c58fb3c2cbaae4a0a2445e3'
-                    },
-                }
-            );
-
-
-            if (res.data.documents) { 
-                const mappedLocationList = renameKeys(res.data.documents, keyMap);
-
-                const payload: Payload = {
-                    code: res.data.code,
-                    locationList: mappedLocationList
-                }
-
-                return payload
-            }
-        } catch (error: any) {
-            errorHandler(error)
-        }
-
-        const payload: Payload = {
-            code: -1,
-            msg: '서버에 연결할 수 없습니다.'
-        }
-
-        return payload
-    }
-    
     // get weather
     const getWeather = async (lattitude: number, longitude: number, type: number): Promise<Payload> => { // 0: favorite, 1: current, 2: search
         try {
@@ -173,10 +89,96 @@ export const useWeather = (): JsonsHook => {
         return payload
     }   
 
-    return { searchPlace, searchAddress, getWeather }
+    // get place Weather
+    const getPlaceWeather = async (lattitude: number, longitude: number, startTime: string): Promise<Payload> => {
+        try {
+            const res: any = await axios.post(`${url}/api/weather/getForecastByLocation`, {
+                location: {
+                    lat: lattitude,
+                    lon: longitude
+                },
+                startTime: startTime
+            })
+
+            console.log(res.data)
+            if (res.data.code !== 200) {
+                const payload: Payload = {
+                    code: res.data.code ?? -1,
+                    msg: '서버에 연결할 수 없습니다.'
+                }
+
+                return payload
+            }
+
+            const temperatureRes: TodoTemperatureResponse = {
+                temperatureTime: res.data.temperatureTime,
+                temperatureValue: res.data.temperatureValue
+            }
+
+            const payload: Payload = {
+                code: 200,
+                todoTemperature: temperatureRes,
+                locationKey: res.data.locationKey,
+            }
+
+            return payload
+        } catch (error: any) {
+            errorHandler(error)
+        }
+
+        const payload: Payload = {
+            code: -1,
+            msg: '서버에 연결할 수 없습니다.'
+        }
+
+        return payload
+    }   
+
+    // get favorite location weather
+    const getFavoriteWeather = async (): Promise<Payload> => {
+        try {
+            const res: any = await axios.post(`${url}/api/weather/getFavoriteLocations`, {
+                userId: userId
+            })
+
+            console.log(res.data)
+            if (res.data.code !== 200) {
+                const payload: Payload = {
+                    code: res.data.code ?? -1,
+                    msg: '서버에 연결할 수 없습니다.'
+                }
+
+                return payload
+            }
+
+            const temperatureRes: TodoTemperatureResponse = {
+                temperatureTime: res.data.temperatureTime,
+                temperatureValue: res.data.temperatureValue
+            }
+
+            const payload: Payload = {
+                code: 200,
+                todoTemperature: temperatureRes,
+                locationKey: res.data.locationKey,
+            }
+
+            return payload
+        } catch (error: any) {
+            errorHandler(error)
+        }
+
+        const payload: Payload = {
+            code: -1,
+            msg: '서버에 연결할 수 없습니다.'
+        }
+
+        return payload
+    }
+
+    return { getWeather, getPlaceWeather, getFavoriteWeather }
 }
 
 const errorHandler = (error: any): void => {
-    Alert.alert('알림', error.message ?? '서버에 연결할 수 없습니다.')
+    // Alert.alert('알림', error.message ?? '서버에 연결할 수 없습니다.')
     console.log(error)
 }

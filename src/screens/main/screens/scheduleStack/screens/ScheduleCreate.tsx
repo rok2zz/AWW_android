@@ -1,7 +1,6 @@
-import { Alert, Animated, Easing, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Animated, Dimensions, Easing, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScheduleNavigationProp } from "../../../../../types/stack";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useRef, useState } from "react";
 import { Focus } from "../../../../../types/screen";
 import { Schedule, Todo } from "../../../../../slices/schedule";
@@ -9,21 +8,22 @@ import { useSchedule } from "../../../../../hooks/useSchedule";
 import { Payload } from "../../../../../types/api";
 import TabHeader from "../../../../../components/header/TabHeader";
 import RNDateTimePicker from "@react-native-community/datetimepicker";
+import { PlaceLocation } from "../../../../../slices/location";
+import TodoSearchPlace from "../../../../../components/TodoSearchPlace";
+import { useWeather } from "../../../../../hooks/useWeather";
+import WeatherIcon from "../../../../../components/WeatherIcon";
+import { useLocationActions, useSearchedPlace } from "../../../../../hooks/useLocation";
 
 //svg
 import EventAdd from "../../../../../assets/imgs/schedule/icon_event_add.svg"
 import SelectedLocation from "../../../../../assets/imgs/schedule/icon_location_selected.svg"
 import Location from "../../../../../assets/imgs/schedule/icon_location_non_selected.svg"
 import TodoDelete from "../../../../../assets/imgs/schedule/icon_todo_delete.svg"
-import TodoSearchPlace from "../../../../../components/TodoSearchPlace";
+import TodoModify from "../../../../../assets/imgs/schedule/icon_todo_modify.svg"
 
 interface ToggleProps {
     value: boolean,
     setValue: React.Dispatch<React.SetStateAction<boolean>>
-}
-
-export interface TodoType {
-
 }
 
 // list with toggle component
@@ -77,6 +77,9 @@ const getNextTime = () => {
 const ScheduleCreate = (): JSX.Element => {  
     const navigation = useNavigation<ScheduleNavigationProp>();
     const { createSchedule } = useSchedule();
+    const { getPlaceWeather } = useWeather();
+    const { saveSearchedPlace } = useLocationActions();
+    const searchedPlace = useSearchedPlace();
     const dateType = 0; // 0: 12시간제, 1: 24시간제
     const [schedule, setSchedule] = useState<Schedule>({
         title: '',
@@ -95,6 +98,34 @@ const ScheduleCreate = (): JSX.Element => {
     const [showPicker, setShowPicker] = useState(false);
     const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
     const [targetKey, setTargetKey] = useState<'startTime' | 'endTime'>('startTime');
+    const [placeSearch, setPlaceSearch] = useState<boolean>(false);
+    const [position] = useState(new Animated.Value(0));
+    const [selectedIndex, setSelectedIndex] = useState<number>(0);
+
+    useEffect(() => {
+        Animated.timing(position, {
+            toValue: placeSearch ? 1 : 0,
+            duration: 500,
+            useNativeDriver: true
+        }).start()
+    }, [placeSearch])
+
+    useEffect(() => {
+        if (searchedPlace.placeName !== ''){
+            handlePlace(searchedPlace)
+        }        
+    }, [searchedPlace])
+
+    const slideUp = {
+        transform: [
+            {
+                translateY: position.interpolate({
+                inputRange: [0, 1],
+                outputRange: [Dimensions.get('window').height, 0], // 아래에서 위로
+                }),
+            },
+        ],
+    };
     
     const getStartTime = () => {
         if (schedule && schedule.todoList) {
@@ -119,6 +150,50 @@ const ScheduleCreate = (): JSX.Element => {
         });
     };
 
+    // 장소 선택
+    const handlePlace = (place: PlaceLocation) => {
+        setSchedule(prev => {
+            const updated = { ...prev };
+            const targetTodo = updated.todoList?.[selectedIndex];
+            if (targetTodo) {
+                targetTodo.placeName = place.placeName;
+                targetTodo.placeAddress = place.placeAddress;
+                targetTodo.lat = place.lat;
+                targetTodo.lon = place.lon;
+                targetTodo.locationKey = place.locationKey;
+            }
+            return updated;
+        });
+
+        setPlaceSearch(false);
+        getWeather(place.lat, place.lon)
+    }
+
+    // 선택한 장소 날씨 호출
+    const getWeather = async (lat: number, lon: number) => {
+        const payload = await getPlaceWeather(lat, lon, schedule.todoList![selectedIndex].startTime);
+        if (payload.code === 200) {
+            setSchedule(prev => {
+                const updatedTodos = prev.todoList!.map((todo, i) => {
+                    if (i === selectedIndex) {
+                        return {
+                            ...todo,
+                            temperatureValue: payload.todoTemperature?.temperatureValue ?? null,
+                            temperatureTime: payload.todoTemperature?.temperatureTime ?? null,
+                            locationKey: payload.locationKey 
+                        };
+                    }
+                    return todo;
+                });
+
+                return {
+                    ...prev,
+                    todoList: updatedTodos
+                };
+            });
+        }
+    }
+    
     // add todo
     const addTodo = () => {
         setSchedule(prev => {
@@ -224,6 +299,11 @@ const ScheduleCreate = (): JSX.Element => {
                             const payload: Payload = await createSchedule(newSchedule);
 
                             if (payload.code === 200) {
+                                saveSearchedPlace({
+                                    lat: 0,
+                                    lon: 0,
+                                    placeName: ''
+                                })
                                 Alert.alert('알림', '일정이 생성되었습니다.')
                                 navigation.popToTop();
                             }
@@ -237,7 +317,16 @@ const ScheduleCreate = (): JSX.Element => {
     return (
         <View style={ styles.wrapper }>
             <TabHeader title="일정 추가하기" type={ 0 } isFocused={ false } before={""} />
-            <TodoSearchPlace />
+
+            { placeSearch &&
+                <Animated.View style={[ styles.placeSearchContainer,  slideUp ]}>
+                    <Pressable style={{ flex: 1 }} onPress={ () => setPlaceSearch(false) }></Pressable>
+                    <View style={ styles.placeContainer }>
+                        <TodoSearchPlace type={ 0 } />
+                    </View>
+                </Animated.View>
+            }
+            
             <ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
                 <View style={[ styles.blockContainer, { paddingVertical: 0 }]}>
                     {/* title */}
@@ -373,48 +462,73 @@ const ScheduleCreate = (): JSX.Element => {
                         // 수정중인 할일
                         if (item.handle) {
                             return (
-                                <View key={ index }>
-                                    <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
-                                        <TextInput style={[ styles.eventTitle, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
-                                            placeholder="할 일" placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
-                                            value={ item.title } keyboardType="default" 
-                                            onChangeText={(text) => {
-                                                setSchedule(prev => {
-                                                    const newList = [...(prev.todoList || [])]; 
-                                                    newList[index].title = text;
-                                                    return { ...prev, todoList: newList };
-                                                });
-                                            }} />
+                                <View key={ index } style={ styles.todoContainer }>
+                                    <View style={{ marginTop: 20, marginHorizontal: 10 }}>
+                                        <TodoModify />
                                     </View>
-                                    <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
-                                        <Text style={[ styles.regularText, { flex: 1 }]}>시작</Text>
-                                        <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('startTime', 'date') }>
-                                            <Text style={ styles.regularText }>{ getPickedDate(item.startTime, true) }</Text>
-                                        </Pressable>
-                                        <Pressable style={ styles.dateBtn } onPress={ () => handlePress('startTime', 'time') }>
-                                            <Text style={ styles.regularText }>{ getPickedTime(item.startTime, true) }</Text>
-                                        </Pressable>
-                                        
-                                        {/* <RNDateTimePicker mode="time" value={ new Date() } onChange={ changeDate } display="default"/> */}
-                                    </View>
-                                    <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
-                                        <Text style={[ styles.regularText, { flex: 1 }]}>종료</Text>
-                                        <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('endTime', 'date') }>
-                                            <Text style={ styles.regularText }>{ getPickedDate(item.endTime ?? '', false) }</Text>
-                                        </Pressable>
-                                        <Pressable style={ styles.dateBtn } onPress={ () => handlePress('endTime', 'time') }>
-                                            <Text style={ styles.regularText }>{ getPickedTime(item.endTime ?? '', false) }</Text>
-                                        </Pressable>
-                                    </View>
-                                    <Pressable style={ styles.dateContainer }  onPress={ () => {}}>
-                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
-                                            { item.location ? <SelectedLocation style={ styles.icon } /> : <Location style={ styles.icon } /> }
-                                        
-                                            <Text style={ styles.regularText }>장소</Text>
+                                    <View style={{ flex: 1 }}>
+                                        <View style={[ styles.dateContainer, { paddingVertical: 0 }]}>
+                                            <TextInput style={[ styles.todoTitle, isFocused.ref === titleRef && isFocused.isFocused ? { borderBottomColor: '#cccccc'} : { borderBottomColor: '#cccccc'} ]} 
+                                                placeholder="할 일" placeholderTextColor="#aaaaaa" ref={ titleRef } returnKeyType="next" autoCapitalize='none' editable={ true }
+                                                value={ item.title } keyboardType="default" 
+                                                onChangeText={(text) => {
+                                                    setSchedule(prev => {
+                                                        const newList = [...(prev.todoList || [])]; 
+                                                        newList[index].title = text;
+                                                        return { ...prev, todoList: newList };
+                                                    });
+                                                }} />
+                                            <Pressable onPress={ () =>  deleteTodo(index) }>
+                                                <TodoDelete style={ styles.todoIcon } /> 
+                                            </Pressable>
                                         </View>
-                                    </Pressable>
+                                        <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
+                                            <Text style={[ styles.regularText, { flex: 1 }]}>시작</Text>
+                                            <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('startTime', 'date') }>
+                                                <Text style={ styles.regularText }>{ getPickedDate(item.startTime, true) }</Text>
+                                            </Pressable>
+                                            <Pressable style={ styles.dateBtn } onPress={ () => handlePress('startTime', 'time') }>
+                                                <Text style={ styles.regularText }>{ getPickedTime(item.startTime, true) }</Text>
+                                            </Pressable>
+                                            
+                                        {/* <RNDateTimePicker mode="time" value={ new Date() } onChange={ changeDate } display="default"/> */}
+                                        </View>
+                                        <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
+                                            <Text style={[ styles.regularText, { flex: 1 }]}>종료</Text>
+                                            <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('endTime', 'date') }>
+                                                <Text style={ styles.regularText }>{ getPickedDate(item.endTime ?? '', false) }</Text>
+                                            </Pressable>
+                                            <Pressable style={ styles.dateBtn } onPress={ () => handlePress('endTime', 'time') }>
+                                                <Text style={ styles.regularText }>{ getPickedTime(item.endTime ?? '', false) }</Text>
+                                            </Pressable>
+                                        </View>
+                                        <Pressable style={[ styles.dateContainer, { borderBottomWidth: 0 }, (item.temperatureValue !== null && item.temperatureValue) && { paddingVertical: 10 }]}  onPress={ () => { setPlaceSearch(true), setSelectedIndex(index) }}>
+                                            <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                                { item.placeName ? (
+                                                    <>
+                                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                                            <SelectedLocation style={ styles.icon } />
+                                                            <Text style={ styles.regularText }>{ item.placeName }</Text>
+                                                        </View>
+                                                        { item.temperatureValue && item.temperatureValue !== null && 
+                                                            <View style={ styles.rowContainer }>
+                                                                <WeatherIcon index={ item.temperatureValue?.weatherIcon ?? 0 } size={ 40 } />
+                                                                <Text style={[ styles.regularText, { fontSize: 20 }]}>{ item.temperatureValue.value ?? '' }°</Text>
+                                                            </View>
+                                                        }
+                                                    </>
+                                                    ) : (
+                                                    <View style={ styles.rowContainer }>
+                                                        <Location style={ styles.icon } />
+                                                        <Text style={ styles.regularText }>장소</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        </Pressable>
+                                    </View>
 
-                                                       {/* show picker */}
+
+                                    {/* show picker */}
                                     { showPicker && (
                                         <RNDateTimePicker
                                             mode={ pickerMode }
@@ -430,15 +544,32 @@ const ScheduleCreate = (): JSX.Element => {
                         // 수정완료된 할일
                         if (schedule.todoList) {
                             return (
-                                <Pressable style={[ styles.rowContainer, { paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]} key={ index } onPress={ () => handleTodoModify(index) }>
-                                    <View style={[ styles.rowContainer, { flex: 1 }]}>
-                                        <Pressable onPress={ () =>  deleteTodo(index) }>
-                                            <TodoDelete style={ styles.todoIcon } /> 
-                                        </Pressable>
-                                        
-                                        <Text style={[ styles.regularText, { letterSpacing: -0.5 } ]}>{ item.title }</Text>
+                                <Pressable onPress={ () => handleTodoModify(index) } key={ index }>
+                                    <View style={[ styles.rowContainer, { paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>
+                                        <View style={[ styles.rowContainer, { flex: 1 }]}>
+                                            <Pressable onPress={ () =>  deleteTodo(index) }>
+                                                <TodoDelete style={ styles.todoIcon } /> 
+                                            </Pressable>
+                                            
+                                            <Text style={[ styles.regularText, { letterSpacing: -0.5 } ]}>{ item.title }</Text>
+                                        </View>
+                                        <Text style={[ styles.regularText, { fontSize: 14, letterSpacing: -0.5 }]}>{ getTime(item) }</Text>
                                     </View>
-                                    <Text style={[ styles.regularText, { fontSize: 14, letterSpacing: -0.5 }]}>{ getTime(item) }</Text>
+                                    { item.placeName && item.placeName !== '' && 
+                                        <View style={ styles.placeExist }>
+                                            <View style={[ styles.rowContainer , { flex: 1 }]}>
+                                                <SelectedLocation style={ styles.icon } />
+                                                <Text style={ styles.regularText }>{ item.placeName }</Text>
+                                            </View>
+                                            
+                                            { item.temperatureValue && item.temperatureValue !== null && 
+                                                <View style={ styles.rowContainer }>
+                                                    <WeatherIcon index={ item.temperatureValue?.weatherIcon ?? 0 } size={ 40 } />
+                                                    <Text style={[ styles.regularText, { fontSize: 20 }]}>{ item.temperatureValue.value ?? '' }°</Text>
+                                                </View>
+                                            }
+                                        </View>
+                                    }
                                 </Pressable>
                             )
                         }
@@ -520,7 +651,13 @@ const styles = StyleSheet.create({
 
         color: '#333333'
     },
-    eventTitle: {
+    todoContainer: {
+        flexDirection: 'row',
+
+        borderBottomColor: '#eeeeee',
+        borderBottomWidth: 1
+    },
+    todoTitle: {
         alignItems: 'center',
         flex: 1,
         height: 60,
@@ -541,6 +678,7 @@ const styles = StyleSheet.create({
     },
     dateContainer: {
         flexDirection: 'row',
+        alignItems: 'center',
 
         paddingVertical: 20,
 
@@ -584,5 +722,29 @@ const styles = StyleSheet.create({
 
 		backgroundColor: '#f5f5f5',
 	},
+    placeSearchContainer: { 
+        justifyContent: 'space-between',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+
+        width: Dimensions.get('window').width,
+        height: '100%',
+
+        zIndex: 1
+    },
+    placeContainer: {
+        flex: 1,
+    },
+    placeExist: {
+        flexDirection: 'row',
+        alignItems: 'center',
+
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+
+        borderRadius: 10,
+        backgroundColor: '#f5f5f5'
+    }
 })
 export default ScheduleCreate;

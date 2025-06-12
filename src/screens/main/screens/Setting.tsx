@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Linking, PermissionsAndroid, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Button, Linking, PermissionsAndroid, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useApi } from '../../../hooks/useApi';
 import Geolocation from '@react-native-community/geolocation';
 import notifee, { AndroidImportance, IntervalTrigger, TimestampTrigger, TimeUnit, TriggerType } from '@notifee/react-native';
@@ -198,7 +198,7 @@ const Setting = (): React.JSX.Element => {
 	}
 
 	return (
-		<View>
+		<ScrollView showsVerticalScrollIndicator={ false }>
 			<Pressable style={ styles.button } onPress={ () => createScheduledNotification() }>
 				<Text>팝업 예약</Text>
 			</Pressable>
@@ -214,7 +214,7 @@ const Setting = (): React.JSX.Element => {
 			<Pressable style={ styles.button2 } onPress={ () => cancel() }>
 				<Text>채널 제거</Text>
 			</Pressable>
-		</View>
+		</ScrollView>
 	);
 }
 

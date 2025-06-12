@@ -2,11 +2,13 @@ import { combineReducers } from 'redux'
 import weather from './weather'
 import schedule from './schedule'
 import auth from './auth'
+import location from './location'
 
 const rootReducer = combineReducers ({
     auth,
     weather,
-    schedule
+    schedule,
+    location
 })
 
 export type RootState = ReturnType<typeof rootReducer>

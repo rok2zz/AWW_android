@@ -1,5 +1,5 @@
-import { Location } from "../slices/location"
-import { Schedule } from "../slices/schedule"
+import { PlaceLocation } from "../slices/location"
+import { Schedule, TodoTemperatureResponse } from "../slices/schedule"
 import { Weather } from "../slices/weather"
 
 // async storage
@@ -38,8 +38,10 @@ export interface Payload {
 
     scheduleList?: Schedule[],
     schedule?: Schedule,
-    locationList?: Location[],
+    locationList?: PlaceLocation[],
     weather?: Weather,
+    todoTemperature?: TodoTemperatureResponse,
+    locationKey?: string
 }
 
 // weather

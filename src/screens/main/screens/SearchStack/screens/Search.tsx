@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import TopTabBar from '../../../../../components/tabBar/TopTabBar';
 import { RouteProp, useNavigation } from '@react-navigation/native';
-import { MainTabNavigationProp, MainTabParamList, SearchStackNavigationProp, SearchStackParamList } from '../../../../../types/stack';
-import { useWeather } from '../../../../../hooks/useWeather';
+import { SearchStackNavigationProp, SearchStackParamList } from '../../../../../types/stack';
 import { Payload } from '../../../../../types/api';
-import { Location } from '../../../../../slices/location';
+import { PlaceLocation } from '../../../../../slices/location';
 
 // svg
 import LeftArrow from '../../../../../assets/imgs/common/chevron_left.svg';
 import Delete from '../../../../../assets/imgs/common/icon_search_delete.svg';
 import SearchIcon from '../../../../../assets/imgs/common/icon_search.svg';
 import MiniSearchIcon from '../../../../../assets/imgs/common/icon_search_mini.svg';
+import { useLocation } from '../../../../../hooks/useLocation';
 
 interface Props {
 	route: RouteProp<SearchStackParamList, 'Search'>
@@ -20,26 +20,19 @@ interface Props {
 const Search = ({ route }: Props): React.JSX.Element => {
 	const navigation = useNavigation<SearchStackNavigationProp>();
 	const beforeScreen: string = route.params?.before ?? '';
-	const { searchAddress, searchPlace } = useWeather();
+	const { searchAddress } = useLocation();
 	const [tabType, setTabType] = useState<number>(0); // 0: 최근 검색, 1: 즐겨찾기
 	const [searchText, setSearchText] = useState<string>('');
 	const [isSearched, setIsSearched] = useState<boolean>(false);
-	const [locationList, setLocationList] = useState<Location[]>([]);
+	const [locationList, setLocationList] = useState<PlaceLocation[]>([]);
 	
-	const handleBackNavigation = (): void => {
-		// if (beforeScreen === 'Home') {
-		// 	navigation.navigate('Home');
-		// }
-		navigation.goBack();
-	}
-
 	const handleTypeChange = (type: number): void => {
 		setTabType(type);
 	}
 	
 	const handleSearch = async () => {
 		if (searchText === '') return
-		const payload: Payload = await searchPlace(searchText, 100);
+		const payload: Payload = await searchAddress(searchText, 100);
 
 		if (payload.locationList) {
 			setLocationList(payload.locationList);
@@ -58,10 +51,10 @@ const Search = ({ route }: Props): React.JSX.Element => {
 		<View style={ styles.wrapper }>
 			<View style={ styles.searchContainer }>
 				<View style={[ styles.rowContainer, { flex: 1 }]}>
-					<Pressable onPress={ handleBackNavigation }>
+					<Pressable onPress={ () => navigation.goBack() }>
 						<LeftArrow style={{ marginRight: 10 }} />
 					</Pressable>
-					<TextInput style={ styles.search } placeholder="주소 검색" placeholderTextColor="#aaaaaa" returnKeyType="done" autoCapitalize='none' editable={ true } multiline={ false }
+					<TextInput style={ styles.search } placeholder="동/읍/면을 입력하세요." placeholderTextColor="#aaaaaa" returnKeyType="done" autoCapitalize='none' editable={ true } multiline={ false }
 						value={ searchText } keyboardType="default" onChangeText={(text: string): void => setSearchText(text) } onSubmitEditing={ handleSearch }  />
 				</View>
 
@@ -77,33 +70,33 @@ const Search = ({ route }: Props): React.JSX.Element => {
 				}
 			</View>
 
-			{ !isSearched && <TopTabBar type={ tabType } typeChange={ handleTypeChange } tab1='최근 검색' tab2='즐겨찾기' /> }
+			{/* { !isSearched && <TopTabBar type={ tabType } typeChange={ handleTypeChange } tab1='최근 검색' tab2='즐겨찾기' /> } */}
 			
 
 			{ tabType === 0 ? (
 				<ScrollView showsVerticalScrollIndicator={ false } style={ styles.container }>
 					{ locationList && locationList.length > 0 ? (
-							<Pressable>
-								{ locationList.map((item: Location, index: number) => (
-									<Pressable style={{ backgroundColor: '#ffffff' }} key={ index } onPress={ () => navigation.navigate('SearchDetail', { lat: item.lat, lon: item.lon, name: item.locationName ?? '' }) }>
-										<View style={ styles.searchList }>
-											<MiniSearchIcon style={{ marginRight: 10 }} />
-											<Text style={{ fontSize: 16, fontFamily: 'NotoSansKR-Regular', color: '#999999' }}>{ item.locationName }</Text>
-										</View>
-									</Pressable>
-								))}
-							</Pressable>
-						) : (
-							<View>
-								<Text style={[ styles.regularText, { textAlign: 'center', marginTop: 80 }]}>검색 결과가 없습니다.</Text>
-							</View>
-						)}
+						<Pressable>
+							{ locationList.map((item: PlaceLocation, index: number) => (
+								<Pressable style={{ backgroundColor: '#ffffff' }} key={ index } onPress={ () => navigation.navigate('SearchDetail', { lat: item.lat, lon: item.lon, name: item.locationName ?? '' }) }>
+									<View style={ styles.searchList }>
+										<MiniSearchIcon style={{ marginRight: 10 }} />
+										<Text style={{ fontSize: 16, fontFamily: 'NotoSansKR-Regular', color: '#999999' }}>{ item.locationName }</Text>
+									</View>
+								</Pressable>
+							))}
+						</Pressable>
+					) : (
+						<View>
+							<Text style={[ styles.regularText, { textAlign: 'center', marginTop: 80 }]}>검색 결과가 없습니다.</Text>
+						</View>
+					)}
 				</ScrollView>
 			) : (
 				<ScrollView showsVerticalScrollIndicator={ false } style={ styles.container }>
 					{ locationList && locationList.length > 0 ? (
 							<Pressable>
-								{ locationList.map((item: Location, index: number) => (
+								{ locationList.map((item: PlaceLocation, index: number) => (
 									<Pressable key={ index } onPress={ () => navigation.navigate('SearchDetail', { lat: item.lat, lon: item.lon, name: item.locationName ?? ''  }) }>	
 										<View style={ styles.searchList }>
 											<MiniSearchIcon style={{ marginRight: 10 }} />

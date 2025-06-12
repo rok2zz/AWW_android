@@ -45,6 +45,25 @@ export interface Weather {
     }
 }
 
+interface FavoriteTemperature {
+    value: number,
+    minimum: number,
+    maximum: number,
+    weatherIcon: number,
+    pm10Grade?: number
+}
+
+export interface FavoriteWeather {
+    locationKey: string,
+    locationName: string,
+    lat: number,
+    lom: number,
+    order: number,
+
+    temperatureTime?: number
+    temperatureValue: FavoriteTemperature
+}
+
 interface WeatherState {
     key?: string,
     currentWeather: Weather,

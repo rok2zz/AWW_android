@@ -57,8 +57,6 @@ export const useSchedule = (): ScheduleHook => {
                 userId: userId
             })
 
-            console.log(res.data)
-
             if (res.data.code !== 200) {
                 const payload: Payload = {
                     code: res.data.code ?? -1,
@@ -150,6 +148,10 @@ export const useSchedule = (): ScheduleHook => {
             created_at: 'createdAt',
             updated_at: 'updatedAt',
             created_by: 'createdBy',
+            location_key: 'locationKey',
+            location_name: 'placeName',
+            temperature_value: 'temperatureValue',
+            temperature_time: 'temperatureTime',
         };
 
         try {
@@ -190,6 +192,15 @@ export const useSchedule = (): ScheduleHook => {
 
     // create Schedule
     const createSchedule = async (schedule: Schedule): Promise<Payload> => {
+        const keyMap: Record<string, string> = {
+            placeName: 'locationName',
+        };
+
+        const renameSchedule: Schedule = {
+            ...schedule,
+            todoList: schedule.todoList?.map(todo => renameKeys(todo, keyMap)) ?? []
+        }
+
         try {
             const res: any = await axios.post(`${url}/api/schedule/createSchedule`, {
                 userId: androidId,
@@ -197,7 +208,7 @@ export const useSchedule = (): ScheduleHook => {
                     title: schedule.title,
                     type: 0
                 },
-                todos: schedule.todoList
+                todos: renameSchedule.todoList
             })
             
             if (res.data.code !== 200) {
@@ -228,8 +239,12 @@ export const useSchedule = (): ScheduleHook => {
 
     // create Schedule
     const modifySchedule = async (userId: string, schedule: Schedule, deletedTodos: number[]): Promise<Payload> => {
-        const existingTodos: Todo[] = schedule.todoList?.filter(item => item.id !== undefined) ?? []
-        const newTodos: Todo[] = schedule.todoList?.filter(item => item.id === undefined) ?? []
+        const keyMap: Record<string, string> = {
+            placeName: 'locationName',
+        };
+
+        const existingTodos: Todo[] = renameKeys(schedule.todoList?.filter(item => item.id !== undefined) ?? [], keyMap);
+        const newTodos: Todo[] = renameKeys(schedule.todoList?.filter(item => item.id === undefined) ?? [], keyMap);
 
         try {
             const res: any = await axios.post(`${url}/api/schedule/modifySchedule`, {

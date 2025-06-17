@@ -19,6 +19,7 @@ export interface PlaceLocation {
 interface LocationState {
     favoriteLocation: PlaceLocation[]
     searchedPlace: PlaceLocation
+    searchedLocation: PlaceLocation
 }
 
 const initialState: LocationState = {
@@ -30,6 +31,10 @@ const initialState: LocationState = {
         lat: 0,
         lon: 0,
         placeName: ''
+    },
+    searchedLocation: {
+        lat: 0,
+        lon: 0,
     }
 }
 
@@ -42,7 +47,7 @@ const locationSlice = createSlice ({
         },
         saveSearchedPlace(state, action: PayloadAction<PlaceLocation>) {
             state.searchedPlace = action.payload
-        },
+        },  
         clearLocation() {
             return initialState
         }

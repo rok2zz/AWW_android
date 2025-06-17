@@ -2,28 +2,31 @@ import { Alert } from "react-native";
 import axios from "axios";
 import { Payload } from "../types/api";
 import { useDispatch, useSelector } from "react-redux";
-import { Weather, saveCurrentWeather, saveFavoriteLocationWeather, saveLastUpdateWeather } from "../slices/weather";
+import { FavoriteWeather, Weather, addFavorite, saveCurrentWeather, saveFavoriteLocationWeather, saveLastUpdateWeather } from "../slices/weather";
 import { bindActionCreators } from "@reduxjs/toolkit";
 import { useMemo } from "react";
 import { RootState } from "../slices";
 import { renameKeys } from "./funcions";
 import { NumberArray } from "react-native-svg";
 import { TodoTemperatureResponse } from "../slices/schedule";
-import { useAndroidId } from "./useAuth";
+import { useAndroidId, useSetting } from "./useAuth";
+import { Setting } from "../slices/auth";
+import { useLocation } from "./useLocation";
 
 interface JsonsHook {
     getWeather: (lattitude: number, longitude: number, type: number) => Promise<Payload>,
     getPlaceWeather: (lattitude: number, longitude: number, startTime: string) => Promise<Payload>,
     getFavoriteWeather: () => Promise<Payload>,
+    getAddFavoriteWeather: (lattitude: number, longitude: number, locationName: string) => Promise<Payload>
 }
 
 export const useWeatherActions = () => {
     const dispatch = useDispatch();
 
-    return useMemo(() => bindActionCreators({ saveCurrentWeather, saveFavoriteLocationWeather, saveLastUpdateWeather }, dispatch), [ dispatch ]);
+    return useMemo(() => bindActionCreators({ addFavorite, saveCurrentWeather, saveFavoriteLocationWeather, saveLastUpdateWeather }, dispatch), [ dispatch ]);
 }
 
-export const useFavoriteLocationWeather = (): Weather[] | undefined => {
+export const useFavoriteLocationWeather = (): FavoriteWeather[] | undefined => {
     return useSelector((state: RootState) => state.weather.favoriteLocationWeather);
 }
 
@@ -39,8 +42,11 @@ export const useWeather = (): JsonsHook => {
     const url = 'http://175.126.73.103:5000'
 
     const language: string = 'ko-kr'
-    const { saveCurrentWeather } = useWeatherActions()
+    const { saveCurrentWeather, saveFavoriteLocationWeather, addFavorite } = useWeatherActions()
+    const { addFavoriteLocation } = useLocation();
     const userId = useAndroidId()
+    const userSetting: Setting = useSetting();
+    const favoriteLocationWeather = useFavoriteLocationWeather();
 
     // get weather
     const getWeather = async (lattitude: number, longitude: number, type: number): Promise<Payload> => { // 0: favorite, 1: current, 2: search
@@ -51,7 +57,6 @@ export const useWeather = (): JsonsHook => {
                     lon: longitude
                 }
             })
-
             if (res.data.code !== 200) {
                 const payload: Payload = {
                     code: res.data.code ?? -1,
@@ -100,7 +105,6 @@ export const useWeather = (): JsonsHook => {
                 startTime: startTime
             })
 
-            console.log(res.data)
             if (res.data.code !== 200) {
                 const payload: Payload = {
                     code: res.data.code ?? -1,
@@ -136,12 +140,20 @@ export const useWeather = (): JsonsHook => {
 
     // get favorite location weather
     const getFavoriteWeather = async (): Promise<Payload> => {
+        const keyMap: Record<string, string> = {
+            location_name: 'locationName',
+            location_key: 'locationKey',
+            kma_name: 'kmaName',
+            temperature_value: 'temperatureValue',
+            temperature_time: 'temperatureTime',
+        };
+
         try {
             const res: any = await axios.post(`${url}/api/weather/getFavoriteLocations`, {
                 userId: userId
             })
-
             console.log(res.data)
+
             if (res.data.code !== 200) {
                 const payload: Payload = {
                     code: res.data.code ?? -1,
@@ -150,16 +162,9 @@ export const useWeather = (): JsonsHook => {
 
                 return payload
             }
-
-            const temperatureRes: TodoTemperatureResponse = {
-                temperatureTime: res.data.temperatureTime,
-                temperatureValue: res.data.temperatureValue
-            }
-
+            saveFavoriteLocationWeather(renameKeys(res.data.favoriteLocations, keyMap))
             const payload: Payload = {
                 code: 200,
-                todoTemperature: temperatureRes,
-                locationKey: res.data.locationKey,
             }
 
             return payload
@@ -175,7 +180,74 @@ export const useWeather = (): JsonsHook => {
         return payload
     }
 
-    return { getWeather, getPlaceWeather, getFavoriteWeather }
+    // get add favorite location weather info
+    const getAddFavoriteWeather = async (lattitude: number, longitude: number, locationName: string): Promise<Payload> => {
+        const keyMap: Record<string, string> = {
+            location_name: 'locationName',
+            location_key: 'locationKey',
+            kma_name: 'kmaName',
+            temperature_value: 'temperatureValue',
+            temperature_time: 'temperatureTime',
+        };
+
+        try {
+            const res: any = await axios.post(`${url}/api/weather/getWeatherByLocation`, {
+                location: {
+                    lat: lattitude,
+                    lon: longitude
+                },
+                metric: userSetting.type
+            })
+
+            if (res.data.code !== 200) {
+                const payload: Payload = {
+                    code: res.data.code ?? -1,
+                    msg: '서버에 연결할 수 없습니다.'
+                }
+
+                return payload
+            }
+
+            const searchedItem = renameKeys(res.data, keyMap);
+            const newItem = {
+                ...searchedItem,
+                locationName: locationName,
+                lat: lattitude,
+                lon: longitude,
+                order: favoriteLocationWeather?.length ?? 0
+            };
+            const exists = favoriteLocationWeather?.some(item => item.locationName === newItem.locationName);
+
+            if (!exists) {
+                const addPayload: Payload = await addFavoriteLocation(newItem);
+                // console.log(addPayload)
+                if (addPayload.code === 200) {
+                    addFavorite(newItem)
+
+                    return addPayload
+                }
+            }
+
+            const payload: Payload = {
+                code: -1,
+                msg: '이미 즐겨찾기에 추가된 장소입니다.'
+            }
+
+            return payload
+        } catch (error: any) {
+            errorHandler(error)
+        }
+
+        const payload: Payload = {
+            code: -1,
+            msg: '서버에 연결할 수 없습니다.'
+        }
+
+        return payload
+    
+    }
+
+    return { getWeather, getPlaceWeather, getFavoriteWeather, getAddFavoriteWeather }
 }
 
 const errorHandler = (error: any): void => {

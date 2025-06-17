@@ -6,10 +6,10 @@ import { HomeStackNavigationProp, MainTabNavigationProp, RootStackNavigationProp
 import { useSchedule } from '../../../../../hooks/useSchedule';
 import { useAndroidId, useSetting } from '../../../../../hooks/useAuth';
 import { FavoriteLocation, PlaceLocation } from '../../../../../slices/location';
-import { Forecasts, Weather } from '../../../../../slices/weather';
+import { FavoriteWeather, Forecasts, Weather } from '../../../../../slices/weather';
 import { Schedule } from '../../../../../slices/schedule';
 import { Payload } from '../../../../../types/api';
-import { useCurrentWeather, useWeather } from '../../../../../hooks/useWeather';
+import { useCurrentWeather, useFavoriteLocationWeather, useWeather } from '../../../../../hooks/useWeather';
 import { convertTemperature, formatHour, getAirQuality, getAirQuarityColor, openAppSettings } from '../../../../../hooks/funcions';
 import Geolocation from '@react-native-community/geolocation';
 
@@ -29,48 +29,15 @@ const Home = (): React.JSX.Element => {
     const tabNavigation = useNavigation<MainTabNavigationProp>();
 	const searchNavigation = useNavigation<SearchStackNavigationProp>();
 	const { getMainScheduleList } = useSchedule();
-	const { getWeather } = useWeather(); 
+	const { getWeather, getFavoriteWeather } = useWeather(); 
+	const favoriteLocationWeather = useFavoriteLocationWeather();
 	const userSetting: Setting = useSetting();
 	const androidId: string = useAndroidId();
 	const isFocused: boolean = useIsFocused();
 
 	const [location, setLocation] = useState<PlaceLocation>({ lat: 0, lon: 0 })
 	const [favoriteLocation, setFavoriteLocation] = useState<FavoriteLocation[]>([{ key: '1', lattitude: 1, longitude: 1 },{ key: '1', lattitude: 1, longitude: 1 }])
-	const [weather, setWeather] = useState<any>({
-		key: '5',
-		lattitude: 1,
-		longitude: 1,
-		location: '서울 압구정동',
-		status: '맑음',
-		temperature: 21,
-		lowest: 8,
-		highest: 23,
-		dust: '매우 좋음',
-	})
-	const [favoriteWeather, setFavoriteWeather] = useState<Weather[]>([
-		// {
-		// 	key: '1',
-		// 	lattitude: 1,
-		// 	longitude: 1,
-		// 	location: '서울 신사동',
-		// 	status: '맑음',
-		// 	temperature: 15,
-		// 	lowest: 8,
-		// 	highest: 16,
-		// 	dust: '매우 나쁨'
-		// },
-		// {
-		// 	key: '2',
-		// 	lattitude: 1,
-		// 	longitude: 1,
-		// 	location: '인천 삼산동',
-		// 	status: '맑음',
-		// 	temperature: 18,
-		// 	lowest: 8,
-		// 	highest: 16,
-		// 	dust: '매우 나쁨'
-		// },
-	])	
+	const [favoriteWeather, setFavoriteWeather] = useState<Weather[]>()	
 	const currentWeather =  useCurrentWeather();
 	const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
 
@@ -87,6 +54,7 @@ const Home = (): React.JSX.Element => {
 	useEffect(() => {
 		if (androidId && isFocused) {
 			getMainSchedule();
+			getFavoriteLocationWeather();
 		}
 	}, [isFocused, androidId]);
 
@@ -95,6 +63,10 @@ const Home = (): React.JSX.Element => {
 			getCurrentLocationWeather();
 		}
 	}, [location])
+
+	useEffect(() => {
+		// console.log(favoriteLocationWeather)
+	}, [favoriteLocationWeather])
 
 	// get lat, lon
 	const getGeolocation = async () => {
@@ -158,14 +130,18 @@ const Home = (): React.JSX.Element => {
 	
 	// 즐겨찾기 날씨
 	const getFavoriteLocationWeather = async () => {
-		const payload: Payload = await getWeather(location.lat, location.lon, 0);
+		const payload: Payload = await getFavoriteWeather();
+
+		if (payload.code === 200) {
+
+		}
 	}
 
 	return (
 		<View style={ styles.wrapper }>
 			<ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
 				{/* marked area */}
-				{ favoriteWeather && favoriteWeather.length > 0 ? (
+				{ favoriteLocationWeather && favoriteLocationWeather.length > 0 ? (
 					<View style={[ styles.contents, { padding: 0, height: 160 }]}>
 						<Swiper
 							style={{ height: 150 }}
@@ -174,7 +150,7 @@ const Home = (): React.JSX.Element => {
 							activeDot={ <ActiveDot style={{ marginHorizontal: 3 }} /> }
 							loop={ true }
 						>
-							{ favoriteWeather.map((item: any, index: number) => {
+							{ favoriteLocationWeather.map((item: FavoriteWeather, index: number) => {
 
 								if (index < 3) {
 									return (
@@ -182,21 +158,22 @@ const Home = (): React.JSX.Element => {
 											<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
 												<View style={[ styles.rowContainer, { flex: 1 }]}>
 													<FilledStar style={ styles.icon } />
-													<Text style={ styles.boldText }>{ item.location }</Text>
+													<Text style={ styles.boldText }>{ item.locationName ?? '' }</Text>
 												</View>
 												<View style={ styles.rowContainer }>
 													<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
-													<Text style={[ styles.regularText, { color: getAirQuarityColor(item.airQuality.pm10Grade ?? 0) }]}>{ getAirQuality(item.airQuality.pm10Grade ?? 0) }</Text>
+													<Text style={[ styles.regularText, { color: getAirQuarityColor(item.temperatureValue.pm10Grade ?? 0) }]}>{ getAirQuality(item.temperatureValue.pm10Grade ?? 0) }</Text>
 													</View>
 											</View>
 
 											<View style={ styles.rowContainer }>
 												<View style={[ styles.rowContainer, { flex: 1 }]}>
-													<Text style={ styles.ExtraBoldText }>{ item.temperature }</Text>
+													<WeatherIcon index={ 1 } size={ 50 } />
+													<Text style={ styles.ExtraBoldText }>{  convertTemperature(item.temperatureValue.value, userSetting.type) }°{ userSetting.type === 0 ? 'C' : 'F' }</Text>
 												</View>
 												<View>
-													<Text style={ styles.regularText }>{ item.status }</Text>
-													<Text style={ styles.regularText }>최저 { item.lowest }° / 최고 { item.highest }°</Text>	
+													<Text style={ styles.regularText }></Text>
+													<Text style={ styles.regularText }>최저 { convertTemperature(currentWeather.temperature.minimum, userSetting.type) }° / 최고 { convertTemperature(currentWeather.temperature.maximum, userSetting.type) }°</Text>	
 												</View>
 											</View>
 										</Pressable>
@@ -221,7 +198,7 @@ const Home = (): React.JSX.Element => {
 							<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
 								<View style={[ styles.rowContainer, { flex: 1 }]}>
 									<FilledStar style={ styles.icon } />
-									<Text style={ styles.boldText }>{ currentWeather.locationName }</Text>
+									<Text style={ styles.boldText }>{ currentWeather.locationName ?? '' }</Text>
 								</View>
 								<View style={ styles.rowContainer }>
 									<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>

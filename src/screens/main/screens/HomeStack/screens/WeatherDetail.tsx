@@ -135,7 +135,7 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                 { weather && weather.locationKey !== '' && showHeader &&
                     <View style={ styles.rowContainer }>
                         <LocationIcon style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
-                        <Text style={[ styles.regularText, { marginRight: 10 }]}>{ weather.locationName }</Text>
+                        <Text style={[ styles.regularText, { marginRight: 10 }]}>{ weather.locationName ?? '' }</Text>
                         <WeatherIcon index={ weather.weatherIcon } size={ 30 } />
                         <Text style={[ styles.extraBoldText, { fontSize: 20, marginRight: 5 }]}>{ weather.temperature.value.toFixed(0) }°</Text> 
                         <Text style={[ styles.regularText, { fontSize: 14 }]}>{ weather.dailyForecasts[0].shortPhrase }</Text>
@@ -149,7 +149,7 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                     <View style={ styles.titleContainer }>
                         <View style={[ styles.rowContainer ]}>
                             <LocationIcon style={{ marginRight: 5 }} />
-                            <Text style={[ styles.regularText ]}>{ weather.locationName }</Text>
+                            <Text style={[ styles.regularText ]}>{ weather.locationName ?? '' }</Text>
                         </View>
 
                         <View style={[ styles.rowContainer, { marginBottom: 5 }]}>

@@ -23,10 +23,9 @@ export const useLocationActions = () => {
     return useMemo(() => bindActionCreators({ saveFavoriteLocation, saveSearchedPlace, clearLocation }, dispatch), [ dispatch ]);
 }
 
-export const useSearchedPlace = (): PlaceLocation => {
+export const useSearchedPlace = (): PlaceLocation => { // 일정의 위치 추가
     return useSelector((state: RootState) => state.location.searchedPlace);
 }
-
 
 export const useLocation = (): JsonsHook => {
     const userId = useAndroidId();
@@ -90,7 +89,7 @@ export const useLocation = (): JsonsHook => {
                     },
                 }
             );
-
+            console.log(res.data.documents.length)
 
             if (res.data.documents) { 
                 const mappedLocationList = renameKeys(res.data.documents, keyMap);
@@ -116,16 +115,13 @@ export const useLocation = (): JsonsHook => {
 
     // add favorite location
     const addFavoriteLocation = async (item: FavoriteWeather): Promise<Payload>  => {
-        const keyMap: Record<string, string> = {
-            placeName: 'locationName',
-        };
-
         try {
-            const res: any = await axios.post(`${url}/api/schedule/addFavoriteLocation`, {
+            const res: any = await axios.post(`${url}/api/weather/addFavoriteLocation`, {
                 userId: userId,
                 location: item
             })
 
+            console.log(res.data)
             
             if (res.data.code !== 200) {
                 const payload: Payload = {

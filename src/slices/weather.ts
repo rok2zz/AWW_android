@@ -61,13 +61,14 @@ export interface FavoriteWeather {
     order: number,
 
     temperatureTime?: number
-    temperatureValue: FavoriteTemperature
+    temperatureValue: FavoriteTemperature,
+    kmaName?: string,
 }
 
 interface WeatherState {
     key?: string,
     currentWeather: Weather,
-    favoriteLocationWeather?: Weather[],
+    favoriteLocationWeather?: FavoriteWeather[],
 
     lastUpdateWeather: string
 }
@@ -113,7 +114,17 @@ const weatherSlice = createSlice ({
     name: 'weather',
     initialState,
     reducers: {
-        saveFavoriteLocationWeather(state, action: PayloadAction<Weather[]>) {
+        addFavorite: (state, action: PayloadAction<FavoriteWeather>) => {
+            if (!state.favoriteLocationWeather) {
+                state.favoriteLocationWeather = [action.payload];
+                console.log('success2')
+
+            } else {
+                state.favoriteLocationWeather.push(action.payload); 
+                console.log('success')
+            }
+        },
+        saveFavoriteLocationWeather(state, action: PayloadAction<FavoriteWeather[]>) {
             state.favoriteLocationWeather = action.payload
         },
         saveCurrentWeather(state, action: PayloadAction<Weather>) {
@@ -129,4 +140,4 @@ const weatherSlice = createSlice ({
 })
 
 export default weatherSlice.reducer
-export const { saveFavoriteLocationWeather, saveCurrentWeather, saveLastUpdateWeather, clearWeather } = weatherSlice.actions
+export const { addFavorite, saveFavoriteLocationWeather, saveCurrentWeather, saveLastUpdateWeather, clearWeather } = weatherSlice.actions

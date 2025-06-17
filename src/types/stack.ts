@@ -71,6 +71,7 @@ export type SearchStackNavigationProp = NativeStackNavigationProp<SearchStackPar
 export type SettingStackParamList = {
 	Setting: undefined,
 	Favorite: undefined,
+	SearchFavoriteLocation: undefined
 }
 
 export type SettingStackScreenName = keyof SettingStackParamList

@@ -43,10 +43,10 @@ const BottomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps): JS
 
             
                         if (!isFocused && !event.defaultPrevented) {
-                            if (route.name === 'ScheduleStack' || route.name === 'SearchStack') {
-                                navigation.reset({ routes: [{ name: route.name }]})
-                                return
-                            }
+                            // if (route.name === 'ScheduleStack' || route.name === 'SearchStack') {
+                            //     navigation.reset({ index: 0, routes: [{ name: route.name }]})
+                            //     return
+                            // }
                             
                             navigation.navigate(route.name)
                         }

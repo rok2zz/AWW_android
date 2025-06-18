@@ -256,7 +256,7 @@ export const useSchedule = (): ScheduleHook => {
                 },
                 existingTodos: existingTodos,
                 newTodos: newTodos,
-                deleteTodos: deletedTodos
+                deletedTodos: deletedTodos
             })
 
             

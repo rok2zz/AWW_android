@@ -54,6 +54,7 @@ interface FavoriteTemperature {
 }
 
 export interface FavoriteWeather {
+    id?: number
     locationKey: string,
     locationName: string,
     lat: number,

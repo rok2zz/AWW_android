@@ -17,7 +17,7 @@ const SearchFavoriteLocation = (): JSX.Element => {
     const { getAddFavoriteWeather } = useWeather();
     const favoriteLocationWeather = useFavoriteLocationWeather();
     const [searchText, setSearchText] = useState<string>('');
-    const [isSearched, setIsSearched] = useState<boolean>(false);
+    const [isSelected, setIsSelected] = useState<boolean>(false);
     const [locationList, setLocationList] = useState<PlaceLocation[]>([]);
     
     const handleSearch = async () => {
@@ -27,12 +27,15 @@ const SearchFavoriteLocation = (): JSX.Element => {
         if (payload.locationList) {
             setLocationList(payload.locationList);
         }
-
-        setIsSearched(true);
     }
 
     const handleSelect = async (item: PlaceLocation) => {
+        if (isSelected) return
+
+        setIsSelected(true);
         const payload: Payload = await getAddFavoriteWeather(item.lat, item.lon, item.locationName ?? '');
+        setIsSelected(false);
+
         if (payload.code !== 200) {
             Alert.alert('알림', payload.msg);
             return
@@ -44,7 +47,6 @@ const SearchFavoriteLocation = (): JSX.Element => {
     const clearSearchText = () => {
         setSearchText('');
         setLocationList([]);
-        setIsSearched(false);
     }
 
     return (

@@ -8,7 +8,7 @@ import { bindActionCreators } from "@reduxjs/toolkit";
 import { clearLocation, PlaceLocation, saveFavoriteLocation, saveSearchedPlace  } from "../slices/location";
 import { RootState } from "../slices";
 import { useAndroidId } from "./useAuth";
-import { FavoriteWeather } from "../slices/weather";
+import { FavoriteWeather, saveFavoriteLocationWeather } from "../slices/weather";
 
 interface JsonsHook {
     searchPlace: (text: string, offset: number) => Promise<Payload>,
@@ -120,8 +120,6 @@ export const useLocation = (): JsonsHook => {
                 userId: userId,
                 location: item
             })
-
-            console.log(res.data)
             
             if (res.data.code !== 200) {
                 const payload: Payload = {
@@ -133,7 +131,8 @@ export const useLocation = (): JsonsHook => {
             }
 
             const payload: Payload = {
-                code: 200
+                code: 200,
+                id: res.data.favoriteLocationId
             }
 
             return payload
@@ -151,18 +150,16 @@ export const useLocation = (): JsonsHook => {
 
     // add favorite location
     const modifyFavoriteLocation = async (existingLocation: FavoriteWeather[], deletedLocation: FavoriteWeather[]): Promise<Payload>  => {
-        const keyMap: Record<string, string> = {
-            placeName: 'locationName',
-        };
+        const deletedId = deletedLocation.map((item) => item.id);
+        console.log(existingLocation)
 
         try {
-            const res: any = await axios.post(`${url}/api/schedule/addFavoriteLocation`, {
+            const res: any = await axios.post(`${url}/api/weather/modifyFavoriteLocation`, {
                 userId: userId,
-                existingLocation: existingLocation,
-                deleteLocation: deletedLocation
+                existingLocations: existingLocation,
+                deletedIds: deletedId
             })
 
-            
             if (res.data.code !== 200) {
                 const payload: Payload = {
                     code: res.data.code ?? -1,
@@ -171,6 +168,8 @@ export const useLocation = (): JsonsHook => {
 
                 return payload
             }
+
+            saveFavoriteLocationWeather(existingLocation)
 
             const payload: Payload = {
                 code: 200

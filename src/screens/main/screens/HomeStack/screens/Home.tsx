@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Dimensions, Image, LayoutChangeEvent, Linking, PermissionsAndroid, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { PermissionsAndroid, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Swiper from 'react-native-swiper';
-import { HomeStackNavigationProp, MainTabNavigationProp, RootStackNavigationProp, ScheduleNavigationProp, SearchStackNavigationProp } from '../../../../../types/stack';
+import { HomeStackNavigationProp, MainTabNavigationProp, SearchStackNavigationProp } from '../../../../../types/stack';
 import { useSchedule } from '../../../../../hooks/useSchedule';
 import { useAndroidId, useSetting } from '../../../../../hooks/useAuth';
 import { FavoriteLocation, PlaceLocation } from '../../../../../slices/location';
@@ -17,10 +17,12 @@ import Geolocation from '@react-native-community/geolocation';
 import Dot from "../../../../../assets/imgs/common/paging_dot.svg"
 import ActiveDot from "../../../../../assets/imgs/common/paging_active_dot.svg"
 import FilledStar from "../../../../../assets/imgs/schedule/icon_filled_star.svg"
+import Location from "../../../../../assets/imgs/common/icon_location.svg"
 import Plus from "../../../../../assets/imgs/schedule/icon_plus.svg"
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add.svg"
 import WeatherIcon from '../../../../../components/WeatherIcon';
 import { Setting } from '../../../../../slices/auth';
+// import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 
 
 
@@ -61,6 +63,7 @@ const Home = (): React.JSX.Element => {
 	useEffect(() => {
 		if (location.lat !== 0 && location.lon !== 0 && androidId) {
 			getCurrentLocationWeather();
+			getFavoriteLocationWeather();
 		}
 	}, [location])
 
@@ -136,6 +139,7 @@ const Home = (): React.JSX.Element => {
 
 		}
 	}
+	
 
 	return (
 		<View style={ styles.wrapper }>
@@ -197,7 +201,7 @@ const Home = (): React.JSX.Element => {
 						<Pressable style={{ paddingHorizontal: 20, paddingTop: 20 }} onPress={ () => navigation.navigate('WeatherDetail', { weather: currentWeather, type: 'current' }) }>
 							<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
 								<View style={[ styles.rowContainer, { flex: 1 }]}>
-									<FilledStar style={ styles.icon } />
+									<Location style={ styles.icon } />
 									<Text style={ styles.boldText }>{ currentWeather.locationName ?? '' }</Text>
 								</View>
 								<View style={ styles.rowContainer }>
@@ -239,7 +243,16 @@ const Home = (): React.JSX.Element => {
 				{/* news */}
 				{/* <View style={ styles.contents }>
 
+		
+
 				</View> */}
+				{/* <BannerAd
+					unitId={'ca-app-pub-5256945920507647~5970488269'}
+					size={BannerAdSize.FULL_BANNER}
+					requestOptions={{
+					requestNonPersonalizedAdsOnly: true,
+					}}
+				/> */}
 
 				{/* schedule */}
 				{ scheduleList && scheduleList.length > 0 ? (

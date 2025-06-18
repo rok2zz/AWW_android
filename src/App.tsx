@@ -7,6 +7,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './slices';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+// import mobileAds, { MaxAdContentRating } from 'react-native-google-mobile-ads';
 
 const store = configureStore({ reducer: rootReducer })
 
@@ -18,6 +19,25 @@ function App(): React.JSX.Element {
 		return notifee.onForegroundEvent(async ({ type, detail }) => {
 		})
 	}, []);
+
+	// useEffect(() => {
+	// 	// 광고 설정 먼저 구성
+	// 	mobileAds()
+	// 	  .setRequestConfiguration({
+	// 		maxAdContentRating: MaxAdContentRating.PG,
+	// 		tagForChildDirectedTreatment: true,
+	// 		tagForUnderAgeOfConsent: true,
+	// 		testDeviceIdentifiers: ['EMULATOR'], // 기기 테스트 ID
+	// 	  })
+	// 	  .then(() => {
+	// 		// 설정 완료 후 SDK 초기화
+	// 		return mobileAds().initialize();
+	// 	  })
+	// 	  .then(adapterStatuses => {
+	// 		console.log('✅ Google Mobile Ads SDK 초기화 완료', adapterStatuses);
+	// 	  });
+	//   }, []);
+	
 
 	return (
 		<Provider store={ store }>

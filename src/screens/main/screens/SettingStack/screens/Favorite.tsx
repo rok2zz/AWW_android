@@ -41,13 +41,6 @@ const Favorite = (): JSX.Element => {
         }
     }, [favoriteLocationWeather])
 
-    const getFavoriteList = async () => {
-        // const payload: Payload = await getFavoriteWeather();
-        // if (payload.code === 200) {
-
-        // }
-    }
-
     const handleSearch = () => {
         if (favoriteLocationWeather?.length === 5) {
             Alert.alert('알림', '즐겨찾기는 최대 5개까지 가능합니다.');
@@ -66,24 +59,11 @@ const Favorite = (): JSX.Element => {
 
             setDeletedList([]);
             setEditMode(false);
-        }
-    }
-
-    const getLocationWeather = async () => {
-        // const payload: Payload = await getPlaceWeather();
-
-    }
-
-    const addFavoriteList = async (item: FavoriteWeather) => {
-        const payload: Payload = await addFavoriteLocation(item); 
-        if (payload.code === 200) {
-            // setFavoriteList((prev) => [...prev, item]);
-            return
+            Alert.alert('알림', '수정이 완료되었습니다.');
         }
     }
 
     const addDeletedList = (item: FavoriteWeather) => {
-        console.log(item.locationKey)
         setDeletedList((prev) => [...prev, item]);
         setFavoriteList((prev) => prev?.filter(fav => fav.locationKey !== item.locationKey));
     }

@@ -222,7 +222,12 @@ export const useWeather = (): JsonsHook => {
                 const addPayload: Payload = await addFavoriteLocation(newItem);
                 // console.log(addPayload)
                 if (addPayload.code === 200) {
-                    addFavorite(newItem)
+                    const addItem = {
+                        ...newItem,
+                        id: addPayload.id
+                    }
+                    
+                    addFavorite(addItem)
 
                     return addPayload
                 }

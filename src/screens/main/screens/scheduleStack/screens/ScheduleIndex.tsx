@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import TabHeader from "../../../../../components/header/TabHeader";
 import { useEffect, useState } from "react";
-import { ScheduleNavigationProp } from "../../../../../types/stack";
+import { ScheduleStackNavigationProp } from "../../../../../types/stack";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Schedule } from "../../../../../slices/schedule";
 import { useCurrentScheduleList, usePastScheduleList, useSchedule } from "../../../../../hooks/useSchedule";
@@ -16,7 +16,7 @@ import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add_b
 
 
 const ScheduleIndex = (): JSX.Element => {
-    const navigation = useNavigation<ScheduleNavigationProp>();
+    const navigation = useNavigation<ScheduleStackNavigationProp>();
     const androidId = useAndroidId();
     const isFocused = useIsFocused();
     const { getScheduleList } = useSchedule();
@@ -93,7 +93,7 @@ const ScheduleIndex = (): JSX.Element => {
 
                                     if (item.status === 1) {
                                         return (
-                                            <Pressable style={ styles.container } key={ index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
+                                            <Pressable style={ styles.container } key={ 'schedule' + index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
                                                 <Text style={ styles.boldText }>{ item.title }</Text>
                                                 <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
                                                 { item.location && (
@@ -133,7 +133,7 @@ const ScheduleIndex = (): JSX.Element => {
 
                                 if (item.status === 0) {
                                     return (
-                                        <Pressable style={[ styles.container, { opacity: 0.7 }]} key={ index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
+                                        <Pressable style={[ styles.container, { opacity: 0.7 }]} key={ 'endSchedule' + index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
                                             <Text style={ styles.boldText }>{ item.title }</Text>
                                             <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
                                             { item.location && (

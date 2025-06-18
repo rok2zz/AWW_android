@@ -1,4 +1,4 @@
-import { Alert, Dimensions, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native"
+import { Alert, Dimensions, ImageBackground, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native"
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { HomeStackNavigationProp, HomeStackParamList, MainTabNavigationProp } from "../../../../../types/stack";
 import { useEffect, useState } from "react";
@@ -33,6 +33,42 @@ interface sunPhase {
     ratio: number,
     angle: number
 }
+
+const background = (index: number) => {
+    if (index >= 1 && index <= 3) {
+        return require('../../../../../assets/imgs/weather/background/01~03_sunny.jpg');
+    } else if (index >= 4 && index <= 7) {
+        return require('../../../../../assets/imgs/weather/background/04~07_cloudy.jpg');
+    } else if (index === 8) {
+        return require('../../../../../assets/imgs/weather/background/08_dreary.jpg');
+    } else if (index === 11) {
+        return require('../../../../../assets/imgs/weather/background/11_fog.jpg');
+    } else if ((index >= 12 && index <= 14) || index === 18 || (index >= 39 && index <= 40)) {
+        return require('../../../../../assets/imgs/weather/background/12~14,18,39~40_rain.jpg');
+    } else if ((index >= 15 && index <= 17) || (index >= 41 && index <= 42)) {
+        return require('../../../../../assets/imgs/weather/background/15~17,41~42_T-Storms.jpg');
+    } else if (index >= 19 && index <= 23) {
+        return require('../../../../../assets/imgs/weather/background/19~23_snow.jpg');
+    } else if (index === 24) {
+        return require('../../../../../assets/imgs/weather/background/24_ice.jpg');
+    } else if (index >= 25 && index <= 29) {
+        return require('../../../../../assets/imgs/weather/background/25~29_sleet.jpg');
+    } else if (index === 30) {
+        return  require('../../../../../assets/imgs/weather/background/30_hot.jpg');
+    } else if (index === 31) {
+        return require('../../../../../assets/imgs/weather/background/31_cold.jpg');
+    } else if (index === 32) {
+        return require('../../../../../assets/imgs/weather/background/32_windy.jpg');
+    } else if (index >= 33 && index <= 35) {
+        return require('../../../../../assets/imgs/weather/background/33~35_clear.jpg');
+    } else if (index >= 36 && index <= 38) {
+        return require('../../../../../assets/imgs/weather/background/36~38_cloudy_night.jpg');
+    } else if (index === 44) {
+        return require('../../../../../assets/imgs/weather/background/44_snow_night.jpg');
+    }
+
+    return require('../../../../../assets/imgs/weather/background/01~03_sunny.jpg');
+} 
 
 const WeatherDetail = ({ route }: Props): JSX.Element => {
     const navigation = useNavigation<HomeStackNavigationProp>();
@@ -126,7 +162,13 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
 
     return (
         <View style={ styles.wrapper }>
+            
             <StatusBar backgroundColor='#98b5c3' />
+            <ImageBackground
+                source={ background(weather.weatherIcon ?? 1) }
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover" 
+            >
             <View style={ styles.rowContainer }>
                 <Pressable style={{ padding: 20 }} onPress={ () => navigation.goBack() }>
                     <LeftArrow />
@@ -142,7 +184,7 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                     </View>
                 }
             </View>
-
+            
             { weather.locationKey !== '' && 
                 <ScrollView style={ styles.container } showsVerticalScrollIndicator={ false } onScroll={ handleScroll }>
                     {/* 요약 */}
@@ -382,6 +424,7 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                     <View style={{ marginBottom: 150 }}></View>
                 </ScrollView>
             }
+            </ImageBackground>
             
         </View>
     )
@@ -391,7 +434,7 @@ const styles = StyleSheet.create({
     wrapper: {
         flex: 1,
 
-        backgroundColor: '#98b5c3'
+        // backgroundColor: '#98b5c3'
     },
     container: {
         marginHorizontal: 20,

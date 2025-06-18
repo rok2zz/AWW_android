@@ -51,7 +51,7 @@ export type ScheduleStackParamList = {
 }
 
 export type ScheduleStackScreenName = keyof ScheduleStackParamList
-export type ScheduleNavigationProp = NativeStackNavigationProp<ScheduleStackParamList>
+export type ScheduleStackNavigationProp = NativeStackNavigationProp<ScheduleStackParamList>
 
 export type SearchStackParamList = {
 	Search: {

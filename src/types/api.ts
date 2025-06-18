@@ -35,6 +35,8 @@ export interface Response {
 export interface Payload {
     code: number,
     msg?: string,
+    
+    id?: number
 
     scheduleList?: Schedule[],
     schedule?: Schedule,

@@ -1,18 +1,24 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
-import { ScheduleNavigationProp, ScheduleStackParamList } from "../../../../types/stack"
+import { ScheduleStackNavigationProp, ScheduleStackParamList } from "../../../../types/stack"
 import ScheduleDetail from "./screens/ScheduleDetail"
 import ScheduleIndex from "./screens/ScheduleIndex"
 import ScheduleCreate from "./screens/ScheduleCreate"
 import SearchPlace from "./screens/SearchPlace"
-import { useNavigation, useRoute } from "@react-navigation/native"
-import React from "react"
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native"
+import React, { useCallback } from "react"
 
 const Stack = createNativeStackNavigator<ScheduleStackParamList>()
 
 const ScheduleStack = (): JSX.Element => {
-	const navigation =useNavigation<ScheduleNavigationProp>();
+	const navigation = useNavigation<ScheduleStackNavigationProp>();
 	const route = useRoute<any>();
 
+	// useFocusEffect(
+	// 	useCallback(() => {
+	// 		navigation.navigate('ScheduleStack' as any, { screen: 'ScheduleIndex' });
+	// 	}, [])
+	//   );
+	  
 	return (
 		<Stack.Navigator initialRouteName="ScheduleIndex">
 			{/* <Stack.Screen name='ScheduleHome' component={ ScheduleHome } options={{ headerShown: false }} /> */}

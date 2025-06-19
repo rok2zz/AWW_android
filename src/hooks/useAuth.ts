@@ -3,7 +3,7 @@ import axios from "axios";
 import { Payload } from "../types/api";
 import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "@reduxjs/toolkit";
-import { saveAndroidId, saveSetting, Setting } from "../slices/auth";
+import { saveAndroidId, saveSetting, UserSetting } from "../slices/auth";
 import { useMemo } from "react";
 import { RootState } from "../slices";
 
@@ -21,6 +21,6 @@ export const useAndroidId = (): string => {
     return useSelector((state: RootState) => state.auth.androidId)
 }
 
-export const useSetting = (): Setting => {
+export const useSetting = (): UserSetting => {
     return useSelector((state: RootState) => state.auth.setting);
 }

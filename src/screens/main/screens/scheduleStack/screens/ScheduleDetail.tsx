@@ -1,6 +1,6 @@
 import { Alert, Animated, Dimensions, Easing, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
-import { ScheduleNavigationProp, ScheduleStackParamList } from "../../../../../types/stack";
+import { ScheduleStackNavigationProp, ScheduleStackParamList } from "../../../../../types/stack";
 import React, { useEffect, useRef, useState } from "react";
 import { Focus } from "../../../../../types/screen";
 import TabHeader from "../../../../../components/header/TabHeader";
@@ -20,12 +20,14 @@ import Location from "../../../../../assets/imgs/schedule/icon_location_non_sele
 import EventAdd from "../../../../../assets/imgs/schedule/icon_event_add.svg"
 import TodoDelete from "../../../../../assets/imgs/schedule/icon_todo_delete.svg"
 import TodoModify from "../../../../../assets/imgs/schedule/icon_todo_modify.svg"
-import { useAndroidId } from "../../../../../hooks/useAuth";
+import { useAndroidId, useSetting } from "../../../../../hooks/useAuth";
 import TodoSearchPlace from "../../../../../components/TodoSearchPlace";
 import { PlaceLocation } from "../../../../../slices/location";
 import WeatherIcon from "../../../../../components/WeatherIcon";
 import { useWeather } from "../../../../../hooks/useWeather";
 import { useLocationActions, useSearchedPlace } from "../../../../../hooks/useLocation";
+import { UserSetting } from "../../../../../slices/auth";
+import { convertTemperature, getPickedDate, getPickedTime, getTime } from "../../../../../hooks/funcions";
 
 interface ToggleProps {
     value: boolean,
@@ -77,9 +79,10 @@ const Toggle = ({ value, setValue }: ToggleProps): JSX.Element => {
 }
 
 const ScheduleDetail = ({ route }: Props): JSX.Element => {  
-    const navigation = useNavigation<ScheduleNavigationProp>();
+    const navigation = useNavigation<ScheduleStackNavigationProp>();
     const androidId = useAndroidId();
     const scheduleId = route.params.id ?? 0;
+    const userSetting: UserSetting = useSetting();
     const { getSchedule, modifySchedule, deleteSchedule, endSchedule } = useSchedule();
     const { getPlaceWeather } = useWeather();
     const { saveSearchedPlace } = useLocationActions();
@@ -170,40 +173,6 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
             isFocused: false
         });
     };
-
-    const getTime = (item: Todo): string => {
-        const start = new Date(item.startTime);
-
-        const formatTime = (date: Date) => {
-            let hour = date.getHours();
-            let minute = date.getMinutes();
-            let ampm = '오전';
-
-            if (dateType === 0) {
-                ampm = hour >= 12 ? '오후' : '오전';
-                hour = hour > 12 ? hour - 12 : 0 + hour;
-
-                return ampm + ' ' + hour + ':' + (minute > 10 ? minute : '0' + minute);
-            }
-
-            return hour + ':' + (minute > 10 ? minute : '0' + minute);
-        }
-
-        if (item.endTime) {
-            const end = new Date(item.endTime);
-
-            return formatTime(start) + ' ~ ' + formatTime(end);
-        }
-
-        return formatTime(start);
-    }
-
-    const getStartTime = () => {
-        if (schedule && schedule.todoList) {
-            const start = new Date(schedule.todoList[0].startTime);
-            return start.getFullYear() + '.' + (start.getMonth() + 1) + '.' + start.getDate()
-        }
-    }
 
     // 장소 선택
     const handlePlace = (place: PlaceLocation) => {
@@ -468,11 +437,10 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                 </View>
                             )}
                        
-    
                             { type === 0 ? (
                                 // 조회
                                 <View>
-                                    <Text style={[ styles.regularText, { paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getStartTime() }</Text>
+                                    <Text style={[ styles.regularText, { fontSize: 16, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ schedule && schedule.todoList ? getPickedDate(schedule.todoList[0].startTime, true) : '' }</Text>
 
                                     { schedule.todoList && schedule.todoList.length > 0 && schedule.todoList.map(( item: Todo, index: number ) => {
                                         if (schedule.todoList &&  schedule.todoList?.length > 0) {
@@ -490,7 +458,7 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                                             }
                                                             <Text style={[ styles.regularText, { letterSpacing: -0.5 } ]}>{ item.title }</Text>
                                                         </View>
-                                                        <Text style={[ styles.regularText, { fontSize: 14, letterSpacing: -0.5 }]}>{ getTime(item) }</Text>
+                                                        <Text style={[ styles.regularText, { fontSize: 14, letterSpacing: -0.5 }]}>{ getTime(item, userSetting.timeType) }</Text>
                                                     </View>
                                                     { item.placeName && item.placeName !== '' && 
                                                         <View style={[ styles.placeExist, { marginTop: 20 }]}>
@@ -502,7 +470,7 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                                             { item.temperatureValue && item.temperatureValue !== null && 
                                                                 <View style={ styles.rowContainer }>
                                                                     <WeatherIcon index={ item.temperatureValue?.weatherIcon ?? 0 } size={ 40 } />
-                                                                    <Text style={[ styles.regularText, { fontSize: 20 }]}>{ item.temperatureValue.value ?? '' }°</Text>
+                                                                    <Text style={[ styles.regularText, { fontSize: 20 }]}>{ item.temperatureValue.value ? convertTemperature(item.temperatureValue.value, userSetting.type) + '°' : ''}</Text>
                                                                 </View>
                                                             }
                                                         </View>
@@ -513,78 +481,14 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                         }
                                     })}
                                 </View>
-
-                                ) : (
+                                ) : ( // 수정
                                 <View style={[ styles.blockContainer, { paddingVertical: 0 }]}>
                                     { schedule.todoList && schedule.todoList.length > 0 && schedule.todoList[0].startTime !== '' && (
-                                        <Text style={[ styles.regularText, { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getStartTime() }</Text>
+                                        <Text style={[ styles.regularText, { fontSize: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' }]}>{ getPickedDate(schedule.todoList[0].startTime, true) }</Text>
                                     )}
                                     
                                     {/* todolist  */}
                                     { schedule.todoList && schedule.todoList.map((item: Todo, index: number) => {
-                                        const getTime = (item: Todo): string => {
-                                            const start = new Date(item.startTime);
-                                    
-                                            const formatTime = (date: Date) => {
-                                                let hour = date.getHours();
-                                                let minute = date.getMinutes();
-                                                let ampm = '오전';
-                                    
-                                                if (dateType === 0) {
-                                                    ampm = hour >= 12 ? '오후' : '오전';
-                                                    hour = hour > 12 ? hour - 12 : 0 + hour;
-                                    
-                                                    return ampm + ' ' + hour + ':' + (minute > 10 ? minute : '0' + minute);
-                                                }
-                                    
-                                                return hour + ':' + (minute > 10 ? minute : '0' + minute);
-                                            }
-                                    
-                                            if (item.endTime) {
-                                                const end = new Date(item.endTime);
-                                    
-                                                return formatTime(start) + ' ~ ' + formatTime(end);
-                                            }
-                                    
-                                            return formatTime(start);
-                                        }
-
-                                        const getPickedDate = (date: string, isStart: boolean) => {
-                                            if (!isStart) {
-                                                if (date === '') {
-                                                    return '----.--.--'
-                                                }
-                                            }
-                                            const time = new Date(date);
-                                            const year = time.getFullYear();
-                                            const month = time.getMonth() + 1;
-                                            const day = time.getDate();
-
-                                            return `${year}.${month}.${day}`;
-                                        }
-
-                                        const getPickedTime = (date: string, isStart: boolean) => {
-                                            if (!isStart) {
-                                                if (date === '') {
-                                                    return '--.--'
-                                                }
-                                            }
-
-                                            const time = new Date(date)
-                                            let hour = time.getHours();
-                                            let minute = time.getMinutes();
-                                            let ampm = '오전';
-                            
-                                            if (dateType === 0) {
-                                                ampm = hour >= 12 ? '오후' : '오전';
-                                                hour = hour > 12 ? hour - 12 : 0 + hour;
-                                
-                                                return ampm + ' ' + hour + ':' + (minute > 10 ? minute : '0' + minute);
-                                            }
-                                
-                                            return hour + ':' + (minute > 10 ? minute : '0' + minute);
-                                        }
-
                                         const handlePress = (key: 'startTime' | 'endTime', mode: 'date' | 'time') => {
                                             setTargetKey(key);
                                             setPickerMode(mode);
@@ -663,10 +567,10 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                                         <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
                                                             <Text style={[ styles.regularText, { flex: 1 }]}>시작</Text>
                                                             <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('startTime', 'date') }>
-                                                                <Text style={ styles.regularText }>{ getPickedDate(item.startTime, true) }</Text>
+                                                                <Text style={[ styles.regularText, { fontSize: 16 }]}>{ getPickedDate(item.startTime, true) }</Text>
                                                             </Pressable>
                                                             <Pressable style={ styles.dateBtn } onPress={ () => handlePress('startTime', 'time') }>
-                                                                <Text style={ styles.regularText }>{ getPickedTime(item.startTime, true) }</Text>
+                                                                <Text style={[ styles.regularText, { fontSize: 16 }]}>{ getPickedTime(item.startTime, true, userSetting.timeType) }</Text>
                                                             </Pressable>
                                                             
                                                         {/* <RNDateTimePicker mode="time" value={ new Date() } onChange={ changeDate } display="default"/> */}
@@ -674,10 +578,10 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                                         <View style={[ styles.dateContainer, { alignItems: 'center', paddingVertical: 15 }]}>
                                                             <Text style={[ styles.regularText, { flex: 1 }]}>종료</Text>
                                                             <Pressable style={[ styles.dateBtn, { marginRight: 9 }]} onPress={ () => handlePress('endTime', 'date') }>
-                                                                <Text style={ styles.regularText }>{ getPickedDate(item.endTime ?? '', false) }</Text>
+                                                                <Text style={[ styles.regularText, { fontSize: 16 }]}>{ getPickedDate(item.endTime ?? '', false) }</Text>
                                                             </Pressable>
                                                             <Pressable style={ styles.dateBtn } onPress={ () => handlePress('endTime', 'time') }>
-                                                                <Text style={ styles.regularText }>{ getPickedTime(item.endTime ?? '', false) }</Text>
+                                                                <Text style={[ styles.regularText, { fontSize: 16 }]}>{ getPickedTime(item.endTime ?? '', false, userSetting.timeType) }</Text>
                                                             </Pressable>
                                                         </View>
                                                         <Pressable style={[ styles.dateContainer, { borderBottomWidth: 0 }, (item.temperatureValue !== null && item.temperatureValue) && { paddingVertical: 10 }]}  onPress={ () => { setPlaceSearch(true), setSelectedIndex(index) }}>
@@ -691,7 +595,7 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                                                         { item.temperatureValue && item.temperatureValue !== null && 
                                                                             <View style={ styles.rowContainer }>
                                                                                 <WeatherIcon index={ item.temperatureValue?.weatherIcon ?? 0 } size={ 40 } />
-                                                                                <Text style={[ styles.regularText, { fontSize: 20 }]}>{ item.temperatureValue.value ?? '' }°</Text>
+                                                                                <Text style={[ styles.regularText, { fontSize: 20 }]}>{ item.temperatureValue.value ? convertTemperature(item.temperatureValue.value, userSetting.type) + '°' : ''}</Text>
                                                                             </View>
                                                                         }
                                                                     </>
@@ -731,7 +635,7 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                                             
                                                             <Text style={[ styles.regularText, { letterSpacing: -0.5 } ]}>{ item.title }</Text>
                                                         </View>
-                                                        <Text style={[ styles.regularText, { fontSize: 14, letterSpacing: -0.5 }]}>{ getTime(item) }</Text>
+                                                        <Text style={[ styles.regularText, { fontSize: 14, letterSpacing: -0.5 }]}>{ getTime(item, userSetting.timeType) }</Text>
                                                     </View>
                                                     { item.placeName && item.placeName !== '' && 
                                                         <View style={ styles.placeExist }>
@@ -743,7 +647,7 @@ const ScheduleDetail = ({ route }: Props): JSX.Element => {
                                                             { item.temperatureValue && item.temperatureValue !== null && 
                                                                 <View style={ styles.rowContainer }>
                                                                     <WeatherIcon index={ item.temperatureValue?.weatherIcon ?? 0 } size={ 40 } />
-                                                                    <Text style={[ styles.regularText, { fontSize: 20 }]}>{ item.temperatureValue.value ?? '' }°</Text>
+                                                                    <Text style={[ styles.regularText, { fontSize: 20 }]}>{ item.temperatureValue.value ? convertTemperature(item.temperatureValue.value, userSetting.type) + '°' : '' }</Text>
                                                                 </View>
                                                             }
                                                         </View>
@@ -845,7 +749,7 @@ const styles = StyleSheet.create({
     },
     regularText: {
         includeFontPadding: false,
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'NotoSansKR-Regular',
 
         color: '#666666'
@@ -874,7 +778,7 @@ const styles = StyleSheet.create({
         height: 60,
 
         includeFontPadding: false,
-        fontSize: 24,
+        fontSize: 20,
         fontFamily: 'NotoSansKR-Bold',
 
         color: '#333333',
@@ -892,7 +796,7 @@ const styles = StyleSheet.create({
         height: 60,
 
         includeFontPadding: false,
-        fontSize: 20,
+        fontSize: 14,
         fontFamily: 'NotoSansKR-Regular',
 
         color: '#666666'

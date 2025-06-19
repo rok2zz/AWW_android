@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         paddingHorizontal: 50,
 
-        backgroundColor: '#eeeeee',
+        backgroundColor: '#ffffff',
     },
     tab: {
         alignItems: 'center',

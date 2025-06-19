@@ -21,7 +21,6 @@ const ScheduleStack = (): JSX.Element => {
 	  
 	return (
 		<Stack.Navigator initialRouteName="ScheduleIndex">
-			{/* <Stack.Screen name='ScheduleHome' component={ ScheduleHome } options={{ headerShown: false }} /> */}
 			<Stack.Screen name='ScheduleIndex' component={ ScheduleIndex } options={{ headerShown: false }} />
 			<Stack.Screen name='ScheduleDetail' component={ ScheduleDetail } options={{ headerShown: false }} />
 			<Stack.Screen name='ScheduleCreate' component={ ScheduleCreate } options={{ headerShown: false }} />

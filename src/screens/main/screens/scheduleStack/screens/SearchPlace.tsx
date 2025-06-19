@@ -1,8 +1,8 @@
-import { Dimensions, PermissionsAndroid, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
-import { useEffect, useState } from "react";
+import { Dimensions, StyleSheet, View } from "react-native"
+import { useState } from "react";
 import { NaverMapMarkerOverlay, NaverMapView } from "@mj-studio/react-native-naver-map";
-import { RouteProp, useNavigation } from "@react-navigation/native";
-import { ScheduleNavigationProp, ScheduleStackParamList } from "../../../../../types/stack";
+import { RouteProp } from "@react-navigation/native";
+import { ScheduleStackParamList } from "../../../../../types/stack";
 import { PlaceLocation } from "../../../../../slices/location";
 
 
@@ -15,7 +15,6 @@ interface Props {
 }
 
 const SearchPlace = ({ route }: Props): JSX.Element => {
-    const navigation = useNavigation<ScheduleNavigationProp>();
     const searchText = route.params?.name ?? '';
     const [location, setLocation] = useState<PlaceLocation>({
         lat: route.params?.lat ?? 0,

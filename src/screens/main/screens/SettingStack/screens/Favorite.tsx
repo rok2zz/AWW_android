@@ -1,4 +1,4 @@
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
+import { Alert, Pressable, StatusBar, StyleSheet, Text, View } from "react-native"
 import { SettingStackNavigationProp } from "../../../../../types/stack";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import LeftArrow from '../../../../../assets/imgs/common/chevron_left.svg';
@@ -12,22 +12,21 @@ import Hamburger from '../../../../../assets/imgs/common/icon_hamburger.svg';
 import Plus from '../../../../../assets/imgs/common/icon_plus.svg';
 import DraggableFlatList, { RenderItemParams } from "react-native-draggable-flatlist";
 import { useLocation } from "../../../../../hooks/useLocation";
-import { PlaceLocation } from "../../../../../slices/location";
-import { Setting } from "../../../../../slices/auth";
+import { UserSetting } from "../../../../../slices/auth";
 import { useSetting } from "../../../../../hooks/useAuth";
 import { convertTemperature } from "../../../../../hooks/funcions";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Favorite = (): JSX.Element => {
     const navigation = useNavigation<SettingStackNavigationProp>();
-    const { getPlaceWeather, getFavoriteWeather } = useWeather();
     const favoriteLocationWeather = useFavoriteLocationWeather();
-    const { saveFavoriteLocationWeather } = useWeatherActions();
-    const userSetting: Setting = useSetting();    
+    const userSetting: UserSetting = useSetting();    
     const { modifyFavoriteLocation, addFavoriteLocation } = useLocation();
     const isFocused = useIsFocused();
     const [editMode, setEditMode] = useState<boolean>(false);
     const [favoriteList, setFavoriteList] = useState<FavoriteWeather[]>(); 
     const [deletedList, setDeletedList] = useState<FavoriteWeather[]>([]);
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         if (isFocused) {
@@ -95,7 +94,8 @@ const Favorite = (): JSX.Element => {
 
 
     return (
-        <View style={ styles.wrapper }>
+        <View style={[ styles.wrapper, { paddingTop: insets.top } ]}>
+            <StatusBar backgroundColor={'#ffffff'}/>
             <View style={[ styles.rowContainer, { justifyContent: 'center', paddingVertical: 15, backgroundColor: '#ffffff' }]}>
                 <Pressable style={ styles.backBtn } onPress={ () => navigation.goBack() }>
                     <LeftArrow width={ 30 } height={ 30 }/>
@@ -138,7 +138,7 @@ const Favorite = (): JSX.Element => {
 
 const styles = StyleSheet.create({
     wrapper: {
-        flex: 1
+        flex: 1,
     },
     container: {
     },

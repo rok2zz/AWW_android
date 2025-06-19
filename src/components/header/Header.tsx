@@ -70,12 +70,6 @@ const Header = ({ title, type, isFocused, popToTop }: Props ): JSX.Element => {
                     { type === 0 || type === 4 ? <LeftArrow /> : <WhiteArrow /> }
                 </Pressable>
                 <Text style={[ styles.title, { color: fontColor }, title === '스크린예약' && { marginLeft: 15, marginRight: 0 }]}>{ title }</Text>
-
-                { title === '스크린예약' && 
-                    <Pressable style={ styles.manageBtn } onPress={ () => navigation.navigate('ManageReservation') }> 
-                        <Text style={[ styles.btnText, { color: '#121619' }]}>예약관리</Text>
-                    </Pressable>
-                }
             </View>
         </SafeAreaView>
                 

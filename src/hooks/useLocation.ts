@@ -89,7 +89,6 @@ export const useLocation = (): JsonsHook => {
                     },
                 }
             );
-            console.log(res.data.documents.length)
 
             if (res.data.documents) { 
                 const mappedLocationList = renameKeys(res.data.documents, keyMap);
@@ -151,7 +150,6 @@ export const useLocation = (): JsonsHook => {
     // add favorite location
     const modifyFavoriteLocation = async (existingLocation: FavoriteWeather[], deletedLocation: FavoriteWeather[]): Promise<Payload>  => {
         const deletedId = deletedLocation.map((item) => item.id);
-        console.log(existingLocation)
 
         try {
             const res: any = await axios.post(`${url}/api/weather/modifyFavoriteLocation`, {

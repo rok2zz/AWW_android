@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { PermissionsAndroid, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, PermissionsAndroid, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Swiper from 'react-native-swiper';
 import { HomeStackNavigationProp, MainTabNavigationProp, SearchStackNavigationProp } from '../../../../../types/stack';
@@ -10,8 +10,9 @@ import { FavoriteWeather, Forecasts, Weather } from '../../../../../slices/weath
 import { Schedule } from '../../../../../slices/schedule';
 import { Payload } from '../../../../../types/api';
 import { useCurrentWeather, useFavoriteLocationWeather, useWeather } from '../../../../../hooks/useWeather';
-import { convertTemperature, formatHour, getAirQuality, getAirQuarityColor, openAppSettings } from '../../../../../hooks/funcions';
+import { background, convertTemperature, formatHour, getAirQuality, getAirQuarityColor, openAppSettings } from '../../../../../hooks/funcions';
 import Geolocation from '@react-native-community/geolocation';
+import { UserSetting } from '../../../../../slices/auth';
 
 // svg
 import Dot from "../../../../../assets/imgs/common/paging_dot.svg"
@@ -21,7 +22,7 @@ import Location from "../../../../../assets/imgs/common/icon_location.svg"
 import Plus from "../../../../../assets/imgs/schedule/icon_plus.svg"
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add.svg"
 import WeatherIcon from '../../../../../components/WeatherIcon';
-import { Setting } from '../../../../../slices/auth';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 
 
@@ -33,9 +34,10 @@ const Home = (): React.JSX.Element => {
 	const { getMainScheduleList } = useSchedule();
 	const { getWeather, getFavoriteWeather } = useWeather(); 
 	const favoriteLocationWeather = useFavoriteLocationWeather();
-	const userSetting: Setting = useSetting();
+	const userSetting: UserSetting = useSetting();
 	const androidId: string = useAndroidId();
 	const isFocused: boolean = useIsFocused();
+	const insets = useSafeAreaInsets();
 
 	const [location, setLocation] = useState<PlaceLocation>({ lat: 0, lon: 0 })
 	const [favoriteLocation, setFavoriteLocation] = useState<FavoriteLocation[]>([{ key: '1', lattitude: 1, longitude: 1 },{ key: '1', lattitude: 1, longitude: 1 }])
@@ -66,10 +68,6 @@ const Home = (): React.JSX.Element => {
 			getFavoriteLocationWeather();
 		}
 	}, [location])
-
-	useEffect(() => {
-		// console.log(favoriteLocationWeather)
-	}, [favoriteLocationWeather])
 
 	// get lat, lon
 	const getGeolocation = async () => {
@@ -143,173 +141,180 @@ const Home = (): React.JSX.Element => {
 
 	return (
 		<View style={ styles.wrapper }>
-			<ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
-				{/* marked area */}
-				{ favoriteLocationWeather && favoriteLocationWeather.length > 0 ? (
-					<View style={[ styles.contents, { padding: 0, height: 160 }]}>
-						<Swiper
-							style={{ height: 150 }}
-							paginationStyle={{ marginBottom: -10 }}
-							dot={ <Dot style={{ marginHorizontal: 3 }} /> }
-							activeDot={ <ActiveDot style={{ marginHorizontal: 3 }} /> }
-							loop={ true }
-						>
-							{ favoriteLocationWeather.map((item: FavoriteWeather, index: number) => {
+            <StatusBar translucent backgroundColor="transparent"/>
 
-								if (index < 3) {
-									return (
-										<Pressable style={ styles.swiperContainer } key={ index } onPress={ () => {} }>
-											<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
-												<View style={[ styles.rowContainer, { flex: 1 }]}>
-													<FilledStar style={ styles.icon } />
-													<Text style={ styles.boldText }>{ item.locationName ?? '' }</Text>
-												</View>
-												<View style={ styles.rowContainer }>
-													<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
-													<Text style={[ styles.regularText, { color: getAirQuarityColor(item.temperatureValue.pm10Grade ?? 0) }]}>{ getAirQuality(item.temperatureValue.pm10Grade ?? 0) }</Text>
+			<ImageBackground
+				source={ background(currentWeather ? currentWeather.weatherIcon : 1) }
+				style={{ width: '100%', height: '100%', paddingTop: insets.top }}
+				resizeMode="cover" 
+			>
+				<ScrollView style={ styles.container } showsVerticalScrollIndicator={ false }>
+					{/* marked area */}
+					{ favoriteLocationWeather && favoriteLocationWeather.length > 0 ? (
+						<View style={[ styles.contents, { padding: 0, height: 160 }]}>
+							<Swiper
+								style={{ height: 150 }}
+								paginationStyle={{ marginBottom: -10 }}
+								dot={ <Dot style={{ marginHorizontal: 3 }} /> }
+								activeDot={ <ActiveDot style={{ marginHorizontal: 3 }} /> }
+								loop={ true }
+							>
+								{ favoriteLocationWeather.map((item: FavoriteWeather, index: number) => {
+									if (index < 3) {
+										return (
+											<Pressable style={ styles.swiperContainer } key={ index } onPress={ () => navigation.navigate('WeatherDetail', { favoriteWeather: item, type: 'favorite' }) }>
+												<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
+													<View style={[ styles.rowContainer, { flex: 1 }]}>
+														<FilledStar style={ styles.icon } />
+														<Text style={ styles.regularText }>{ item.locationName ?? '' }</Text>
 													</View>
-											</View>
+													<View style={ styles.rowContainer }>
+														<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
+														<Text style={[ styles.regularText, { color: getAirQuarityColor(item.temperatureValue.pm10Grade ?? 0) }]}>{ getAirQuality(item.temperatureValue.pm10Grade ?? 0) }</Text>
+														</View>
+												</View>
 
-											<View style={ styles.rowContainer }>
-												<View style={[ styles.rowContainer, { flex: 1 }]}>
-													<WeatherIcon index={ 1 } size={ 50 } />
-													<Text style={ styles.ExtraBoldText }>{  convertTemperature(item.temperatureValue.value, userSetting.type) }°{ userSetting.type === 0 ? 'C' : 'F' }</Text>
+												<View style={ styles.rowContainer }>
+													<View style={[ styles.rowContainer, { flex: 1 }]}>
+														<WeatherIcon index={ 1 } size={ 50 } />
+														<Text style={ styles.boldText }>{  convertTemperature(item.temperatureValue.value, userSetting.type) }°</Text>
+													</View>
+													<View>
+														<Text style={ styles.regularText }></Text>
+														<Text style={ styles.regularText }>최저 { convertTemperature(currentWeather.temperature.minimum, userSetting.type) }° / 최고 { convertTemperature(currentWeather.temperature.maximum, userSetting.type) }°</Text>	
+													</View>
 												</View>
-												<View>
-													<Text style={ styles.regularText }></Text>
-													<Text style={ styles.regularText }>최저 { convertTemperature(currentWeather.temperature.minimum, userSetting.type) }° / 최고 { convertTemperature(currentWeather.temperature.maximum, userSetting.type) }°</Text>	
-												</View>
-											</View>
-										</Pressable>
-									)
-								}
-							})}
-						</Swiper>
-					</View>
-				) : (
-					<Pressable style={ styles.contents } onPress={ () => tabNavigation.navigate('SettingStack' as any, { screen: 'Favorite' }) }>
-						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
-							<Plus style={{ marginRight: 10 }} />
-							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>즐겨찾는 위치 추가</Text>
+											</Pressable>
+										)
+									}
+								})}
+							</Swiper>
 						</View>
-					</Pressable>
-				)}
-
-				{/* current area */}
-				{ currentWeather && (
-					<View style={[ styles.contents, { padding: 0 }]}>
-						<Pressable style={{ paddingHorizontal: 20, paddingTop: 20 }} onPress={ () => navigation.navigate('WeatherDetail', { weather: currentWeather, type: 'current' }) }>
-							<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
-								<View style={[ styles.rowContainer, { flex: 1 }]}>
-									<Location style={ styles.icon } />
-									<Text style={ styles.boldText }>{ currentWeather.locationName ?? '' }</Text>
-								</View>
-								<View style={ styles.rowContainer }>
-									<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
-									<Text style={[ styles.regularText, { color: getAirQuarityColor(currentWeather.indexes?.pm10Grade ?? 0) }]}>{ getAirQuality(currentWeather.indexes?.pm10Grade ?? 0) }</Text>
-								</View>
-							</View>
-
-							<View style={[ styles.rowContainer, { paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#cccccc' }]}>
-								<View style={[ styles.rowContainer, { flex: 1 }]}>
-									<WeatherIcon index={ 1 } size={ 50 } />
-									<Text style={ styles.ExtraBoldText }>{  convertTemperature(currentWeather.temperature.value, userSetting.type) }°{ userSetting.type === 0 ? 'C' : 'F' }</Text>
-								</View>
-								<View style={{ width: '50%' }}>
-									<Text style={ styles.regularText }>{ currentWeather.dailyForecasts[0]?.shortPhrase ?? '' }</Text>
-									<Text style={ styles.regularText }>최저 { convertTemperature(currentWeather.temperature.minimum, userSetting.type) }° / 최고 { convertTemperature(currentWeather.temperature.maximum, userSetting.type) }°</Text>	
-								</View>
+					) : (
+						<Pressable style={ styles.contents } onPress={ () => tabNavigation.navigate('SettingStack' as any, { screen: 'Favorite' }) }>
+							<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
+								<Plus style={{ marginRight: 10 }} />
+								<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>즐겨찾는 위치 추가</Text>
 							</View>
 						</Pressable>
+					)}
 
-						<View style={{ padding: 20 }}>
-							<ScrollView horizontal showsHorizontalScrollIndicator={ false }>
-								{ currentWeather.hourlyForecasts.map((item: Forecasts, index: number) => {
-									return (
-										<View key={ index }>
-											<View style={ styles.hourlyWeather }>
-												<Text style={[ styles.regularText, { fontSize: 12, marginBottom: 13 }]}>{ formatHour(new Date(item.dateTime), userSetting.timeType) }</Text>
-												<WeatherIcon index={ item.weatherIcon } size={ 40 } />
-												<Text style={[ styles.regularText, { marginTop: 10 }]}>{ item.temperature?.toFixed(0) }°</Text>
+					{/* current area */}
+					{ currentWeather && (
+						<View style={[ styles.contents, { padding: 0 }]}>
+							<Pressable style={{ paddingHorizontal: 20, paddingTop: 20 }} onPress={ () => navigation.navigate('WeatherDetail', { currentWeather: currentWeather, type: 'current' }) }>
+								<View style={[ styles.rowContainer, { marginBottom: 10 }]}>
+									<View style={[ styles.rowContainer, { flex: 1 }]}>
+										<Location style={ styles.icon } />
+										<Text style={ styles.regularText }>{ currentWeather.locationName ?? '' }</Text>
+									</View>
+									<View style={ styles.rowContainer }>
+										<Text style={[ styles.regularText, { marginRight: 5, color: '#cccccc' }]}>미세먼지</Text>
+										<Text style={[ styles.regularText, { color: getAirQuarityColor(currentWeather.indexes?.pm10Grade ?? 0) }]}>{ getAirQuality(currentWeather.indexes?.pm10Grade ?? 0) }</Text>
+									</View>
+								</View>
+
+								<View style={[ styles.rowContainer, { paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#cccccc' }]}>
+									<View style={[ styles.rowContainer, { flex: 1 }]}>
+										<WeatherIcon index={ 1 } size={ 50 } />
+										<Text style={ styles.boldText }>{  convertTemperature(currentWeather.temperature.value, userSetting.type) }°</Text>
+									</View>
+									<View style={{ width: '50%' }}>
+										<Text style={ styles.regularText }>{ currentWeather.dailyForecasts[0]?.shortPhrase ?? '' }</Text>
+										<Text style={ styles.regularText }>최저 { convertTemperature(currentWeather.temperature.minimum, userSetting.type) }° / 최고 { convertTemperature(currentWeather.temperature.maximum, userSetting.type) }°</Text>	
+									</View>
+								</View>
+							</Pressable>
+
+							<View style={{ padding: 20 }}>
+								<ScrollView horizontal showsHorizontalScrollIndicator={ false }>
+									{ currentWeather.hourlyForecasts.map((item: Forecasts, index: number) => {
+										return (
+											<View key={ index }>
+												<View style={ styles.hourlyWeather }>
+													<Text style={[ styles.regularText, { fontSize: 12, marginBottom: 13 }]}>{ formatHour(new Date(item.dateTime), userSetting.timeType) }</Text>
+													<WeatherIcon index={ item.weatherIcon } size={ 40 } />
+													<Text style={[ styles.regularText, { marginTop: 10 }]}>{ item.temperature?.toFixed(0) }°</Text>
+												</View>
 											</View>
-										</View>
-									)
-								})}
-							</ScrollView>
+										)
+									})}
+								</ScrollView>
+							</View>
 						</View>
-					</View>
-				)}
+					)}
 
-				{/* news */}
-				{/* <View style={ styles.contents }>
+					{/* news */}
+					{/* <View style={ styles.contents }>
 
-		
+			
 
-				</View> */}
-				{/* <BannerAd
-					unitId={'ca-app-pub-5256945920507647~5970488269'}
-					size={BannerAdSize.FULL_BANNER}
-					requestOptions={{
-					requestNonPersonalizedAdsOnly: true,
-					}}
-				/> */}
+					</View> */}
+					{/* <BannerAd
+						unitId={'ca-app-pub-5256945920507647~5970488269'}
+						size={BannerAdSize.FULL_BANNER}
+						requestOptions={{
+						requestNonPersonalizedAdsOnly: true,
+						}}
+					/> */}
 
-				{/* schedule */}
-				{ scheduleList && scheduleList.length > 0 ? (
-					<View style={[ styles.contents, { marginBottom: 150 }]}>
-						<View style={ styles.rowContainer }>
-							<Text style={[ styles.regularText, { flex: 1 }]}>일정</Text>
-							<Pressable onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleIndex' }) }>
-								<Text style={[ styles.regularText, { fontSize: 12 }]}>더 보기 +</Text>
+					{/* schedule */}
+					{ scheduleList && scheduleList.length > 0 ? (
+						<View style={[ styles.contents, { marginBottom: 150 }]}>
+							<View style={ styles.rowContainer }>
+								<Text style={[ styles.regularText, { flex: 1 }]}>일정</Text>
+								<Pressable onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleIndex' }) }>
+									<Text style={[ styles.regularText, { fontSize: 12 }]}>더 보기 +</Text>
+								</Pressable>
+							</View>
+							<View style={ styles.scheduleContainer }>
+								{ scheduleList && scheduleList.length > 0 && scheduleList.map(( item: Schedule, index: number ) => {
+									const getTime = (date: string): string => {
+										const start = new Date(date);
+										const hours = start.getHours();
+										const minutes = start.getMinutes();
+										const days = ['일', '월', '화', '수', '목', '금', '토'];
+
+										if (userSetting.timeType === 0) {
+											const ampm = hours >= 12 ? '오후' : '오전';
+											const formattedHours = hours % 12 || 12; // 0을 12로 변환
+									
+											return `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]}) ${ampm} ${formattedHours}시 ${minutes < 10 ? '0' + minutes: minutes}분`;
+										}
+									
+										return `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]}) ${hours < 10 ? '0' + hours : hours }:${minutes < 10 ? '0' + minutes: minutes}`;
+									}
+
+									if (index < 5 && item.status == 1) {
+										return (
+											<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleDetail', params: { id: item.id }}) } key={ index }>
+												<View style={{ padding: 20 }}>
+													<Text style={ styles.regularText }>{ item.title }</Text>
+													<Text style={[ styles.regularText, { fontSize: 14, color: 'rgba(255, 255, 255, 0.5)'} ]}>{ getTime(item.earliestStart ?? '') }</Text>
+												</View>
+											</Pressable>
+										)
+									}
+								})}
+							</View>
+							<Pressable style={[ styles.contents, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleCreate' }) }>
+								<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
+									<ScheduleAdd style={{ marginRight: 10 }} />
+									<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>
+								</View>
 							</Pressable>
 						</View>
-						<View style={ styles.scheduleContainer }>
-							{ scheduleList && scheduleList.length > 0 && scheduleList.map(( item: Schedule, index: number ) => {
-								const getTime = (date: string): string => {
-									const start = new Date(date);
-									const hours = start.getHours();
-									const minutes = start.getMinutes();
-									const days = ['일', '월', '화', '수', '목', '금', '토'];
-
-									if (userSetting.timeType === 0) {
-										const ampm = hours >= 12 ? '오후' : '오전';
-										const formattedHours = hours % 12 || 12; // 0을 12로 변환
-								
-										return `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]}) ${ampm} ${formattedHours}시 ${minutes < 10 ? '0' + minutes: minutes}분`;
-									}
-								
-									return `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]}) ${hours < 10 ? '0' + hours : hours }:${minutes < 10 ? '0' + minutes: minutes}`;
-								}
-
-								if (index < 5 && item.status == 1) {
-									return (
-										<Pressable style={[ styles.scheduleList, (index === scheduleList.length - 1) && { borderBottomWidth: 0 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleDetail', params: { id: item.id }}) } key={ index }>
-											<View style={[ styles.rowContainer, { padding: 20 }]}>
-												<Text style={[ styles.regularText, { flex: 1, fontSize: 16 }]}>{ item.title }</Text>
-												<Text style={[ styles.regularText, { fontSize: 14, color: 'rgba(255, 255, 255, 0.5)'} ]}>{ getTime(item.earliestStart ?? '') }</Text>
-											</View>
-										</Pressable>
-									)
-								}
-							})}
-						</View>
-						<Pressable style={[ styles.contents, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleCreate' }) }>
+					) : (
+						<Pressable style={[ styles.contents, { marginBottom: 150 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleCreate' }) }>
 							<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
 								<ScheduleAdd style={{ marginRight: 10 }} />
 								<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>
 							</View>
 						</Pressable>
-					</View>
-				) : (
-					<Pressable style={[ styles.contents, { marginBottom: 150 }]} onPress={ () => tabNavigation.navigate('ScheduleStack' as any, { screen: 'ScheduleCreate' }) }>
-						<View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
-							<ScheduleAdd style={{ marginRight: 10 }} />
-							<Text style={[ styles.regularText, { color: '#ffffff', opacity: 0.5 }]}>일정 추가하기</Text>
-						</View>
-					</Pressable>
-				)}
-				
-			</ScrollView>
+					)}
+					
+				</ScrollView>
+			</ImageBackground>
 		</View>
 	);
 }
@@ -347,23 +352,16 @@ const styles = StyleSheet.create({
 		width: 40,
 		height: 40
 	},
-	ExtraBoldText: {
-		includeFontPadding: false,
-        fontSize: 60,
-        fontFamily: 'NotoSansKR-ExtraBold',
-
-        color: '#ffffff'
-	},
 	boldText: {
 		includeFontPadding: false,
-        fontSize: 20,
+        fontSize: 60,
         fontFamily: 'NotoSansKR-Bold',
 
         color: '#ffffff'
 	},
 	regularText: {
 		includeFontPadding: false,
-        fontSize: 20,
+        fontSize: 18,
         fontFamily: 'NotoSansKR-Regular',
 
         color: '#ffffff'

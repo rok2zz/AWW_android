@@ -1,14 +1,14 @@
 
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 
-export interface Setting {
+export interface UserSetting {
     type: number // 0: metric, 1: imperial
     timeType: number // 0: 12시간제, 1: 24시간제
 }
 
 interface authState {
     androidId: string
-    setting: Setting
+    setting: UserSetting
 }
 
 const initialState: authState = {
@@ -26,7 +26,7 @@ const authSlice = createSlice ({
         saveAndroidId(state, action: PayloadAction<string>) {
             state.androidId = action.payload
         },
-        saveSetting(state, action: PayloadAction<Setting>) {
+        saveSetting(state, action: PayloadAction<UserSetting>) {
             state.setting = action.payload
         },
         clear() {

@@ -5,7 +5,7 @@ import MainTab from "./\bmain/MainTab"
 import DeviceInfo from "react-native-device-info"
 import { useAuthActions } from "../hooks/useAuth"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { Setting } from "../slices/auth"
+import { UserSetting } from "../slices/auth"
 import { Payload } from "../types/api"
 import { PlaceLocation } from "../slices/location"
 import { useLocationActions } from "../hooks/useLocation"
@@ -32,7 +32,7 @@ const RootStack = (): JSX.Element => {
 
 		if (!storageSetting) return
 
-		const setting: Setting = JSON.parse(storageSetting);
+		const setting: UserSetting = JSON.parse(storageSetting);
 		saveSetting(setting);
 	};
 

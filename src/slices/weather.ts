@@ -58,7 +58,7 @@ export interface FavoriteWeather {
     locationKey: string,
     locationName: string,
     lat: number,
-    lom: number,
+    lon: number,
     order: number,
 
     temperatureTime?: number
@@ -70,7 +70,7 @@ interface WeatherState {
     key?: string,
     currentWeather: Weather,
     favoriteLocationWeather?: FavoriteWeather[],
-
+    favoriteLocationWeatherDetail?: Weather[],
     lastUpdateWeather: string
 }
 
@@ -118,15 +118,16 @@ const weatherSlice = createSlice ({
         addFavorite: (state, action: PayloadAction<FavoriteWeather>) => {
             if (!state.favoriteLocationWeather) {
                 state.favoriteLocationWeather = [action.payload];
-                console.log('success2')
 
             } else {
                 state.favoriteLocationWeather.push(action.payload); 
-                console.log('success')
             }
         },
         saveFavoriteLocationWeather(state, action: PayloadAction<FavoriteWeather[]>) {
             state.favoriteLocationWeather = action.payload
+        },
+        saveFavoriteLocationWeatherDetail(state, action: PayloadAction<Weather[]>) {
+            state.favoriteLocationWeatherDetail = action.payload
         },
         saveCurrentWeather(state, action: PayloadAction<Weather>) {
             state.currentWeather = action.payload}
@@ -141,4 +142,4 @@ const weatherSlice = createSlice ({
 })
 
 export default weatherSlice.reducer
-export const { addFavorite, saveFavoriteLocationWeather, saveCurrentWeather, saveLastUpdateWeather, clearWeather } = weatherSlice.actions
+export const { addFavorite, saveFavoriteLocationWeather, saveFavoriteLocationWeatherDetail, saveCurrentWeather, saveLastUpdateWeather, clearWeather } = weatherSlice.actions

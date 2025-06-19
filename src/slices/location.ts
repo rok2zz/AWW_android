@@ -13,7 +13,9 @@ export interface PlaceLocation {
     lon: number,
     locationKey?: string,
     placeName?: string,
-    placeAddress?: string
+    placeAddress?: string,
+    kmaName?: string,
+    id?: number
 }
 
 interface LocationState {

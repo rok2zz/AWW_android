@@ -97,8 +97,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
 
         includeFontPadding: false,
-        fontSize: 18,
-        fontFamily: 'Pretendard-SemiBold',
+        fontSize: 20,
+        fontFamily: 'NotoSansKR-Regular',
 
         paddingVertical: 19,
         marginRight: 36
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     btnText: {
         includeFontPadding: false,
         fontSize: 16,
-        fontFamily: 'Pretendard-Bold',
+        fontFamily: 'NotoSansKR-Bold',
 
         color: '#121619'
     }

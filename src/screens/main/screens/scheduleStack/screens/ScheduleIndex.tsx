@@ -6,12 +6,14 @@ import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Schedule } from "../../../../../slices/schedule";
 import { useCurrentScheduleList, usePastScheduleList, useSchedule } from "../../../../../hooks/useSchedule";
 import { Payload } from "../../../../../types/api";
-import { useAndroidId } from "../../../../../hooks/useAuth";
+import { useAndroidId, useSetting } from "../../../../../hooks/useAuth";
 
 // svg
 import Location from "../../../../../assets/imgs/schedule/icon_location_mark.svg"
 import TopTabBar from "../../../../../components/tabBar/TopTabBar";
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add_blue.svg"
+import { UserSetting } from "../../../../../slices/auth";
+import { convertTemperature } from "../../../../../hooks/funcions";
 
 
 
@@ -19,9 +21,9 @@ const ScheduleIndex = (): JSX.Element => {
     const navigation = useNavigation<ScheduleStackNavigationProp>();
     const androidId = useAndroidId();
     const isFocused = useIsFocused();
+    const userSetting: UserSetting = useSetting();
     const { getScheduleList } = useSchedule();
     const [tabType, setTabType] = useState<number>(0); // 0: 현재 일정, 1: 종료된 일정
-    const dateType: number = 0; // 0: 12시간제, 1: 24시간제
     const currentScheduleList: Schedule[] = useCurrentScheduleList();
     const pastScheduleList: Schedule[] = usePastScheduleList();
 
@@ -47,11 +49,11 @@ const ScheduleIndex = (): JSX.Element => {
             let minute = date.getMinutes();
             let ampm = '오전';
 
-            if (dateType === 0) {
+            if (userSetting.timeType === 0) {
                 ampm = hour >= 12 ? '오후' : '오전';
                 hour = hour > 12 ? hour - 12 : 0 + hour;
 
-                return ampm + ' ' + hour + ':' + (minute > 10 ? minute : '0' + minute);
+                return ampm + ' ' + hour + '시 ' + (minute > 10 ? minute : '0' + minute) + '분';
             }
 
             return hour + ':' + (minute > 10 ? minute : '0' + minute);
@@ -74,7 +76,8 @@ const ScheduleIndex = (): JSX.Element => {
     }
 
     const handleTypeChange = (newType: number) => {
-        setTabType(newType)
+        setTabType(newType);
+        console.log(currentScheduleList)
     }
 
     return (
@@ -89,34 +92,34 @@ const ScheduleIndex = (): JSX.Element => {
                 { tabType === 0 ? (
                     <>
                         <ScrollView showsVerticalScrollIndicator={ false }>
-                                { currentScheduleList && currentScheduleList.length > 0 && currentScheduleList.map(( item: Schedule, index: number ) => {
+                            { currentScheduleList && currentScheduleList.length > 0 && currentScheduleList.map(( item: Schedule, index: number ) => {
 
-                                    if (item.status === 1) {
-                                        return (
-                                            <Pressable style={ styles.container } key={ 'schedule' + index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
-                                                <Text style={ styles.boldText }>{ item.title }</Text>
-                                                <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
-                                                { item.location && (
-                                                    <View style={ styles.rowContainer }>
-                                                        <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
-                                                        <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
-                
-                                                        { item.temperature !== undefined && (
-                                                            <View style={ styles.rowContainer }>
-                                                                <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
-                                                            </View>
-                                                        )}
-                                                    </View>
-                                                )}
-                                            </Pressable>
-                                        )
-                                    }
-                                })}
-                                { currentScheduleList && currentScheduleList.length === 0 && 
-                                    <View style={{ marginTop: 100, alignItems: 'center' }}>
-                                        <Text style={[ styles.regularText, { color: 'rgba(0, 0, 0, 0.25)' }]}>등록된 일정이 없습니다.</Text>
-                                    </View>
+                                if (item.status === 1) {
+                                    return (
+                                        <Pressable style={ styles.container } key={ 'schedule' + index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
+                                            <Text style={ styles.boldText }>{ item.title }</Text>
+                                            <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
+                                            { item.location && (
+                                                <View style={ styles.rowContainer }>
+                                                    <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                                                    <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+            
+                                                    { item.temperature !== undefined && (
+                                                        <View style={ styles.rowContainer }>
+                                                            <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ convertTemperature(item.temperature, userSetting.type) }°</Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            )}
+                                        </Pressable>
+                                    )
                                 }
+                            })}
+                            { currentScheduleList && currentScheduleList.length === 0 && 
+                                <View style={{ marginTop: 100, alignItems: 'center' }}>
+                                    <Text style={[ styles.regularText, { color: 'rgba(0, 0, 0, 0.25)' }]}>등록된 일정이 없습니다.</Text>
+                                </View>
+                            }
                         </ScrollView>
 
                         <Pressable style={ styles.addBtn } onPress={ () => navigation.navigate('ScheduleCreate') }>
@@ -143,7 +146,7 @@ const ScheduleIndex = (): JSX.Element => {
 
                                                     { item.temperature !== undefined && (
                                                         <View style={ styles.rowContainer }>
-                                                            <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ item.temperature }°</Text>
+                                                            <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ convertTemperature(item.temperature, userSetting.type) }°</Text>
                                                         </View>
                                                     )}
                                                 </View>
@@ -182,7 +185,7 @@ const styles = StyleSheet.create({
     },
     boldText: {
 		includeFontPadding: false,
-        fontSize: 24,
+        fontSize: 20,
         fontFamily: 'NotoSansKR-Bold',
 
         marginBottom: 16,

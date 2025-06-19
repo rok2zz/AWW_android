@@ -1,5 +1,5 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { Weather } from "../slices/weather"
+import { FavoriteWeather, Weather } from "../slices/weather"
 import { PlaceLocation } from "../slices/location"
 
 // RootStack
@@ -28,7 +28,8 @@ export type MainTabNavigationProp = NativeStackNavigationProp<MainTabParamList>
 export type HomeStackParamList = {
 	Home: undefined,
 	WeatherDetail: {
-		weather: Weather,
+		currentWeather?: Weather,
+		favoriteWeather?: FavoriteWeather,
 		type: string
 	},
 }
@@ -71,7 +72,8 @@ export type SearchStackNavigationProp = NativeStackNavigationProp<SearchStackPar
 export type SettingStackParamList = {
 	Setting: undefined,
 	Favorite: undefined,
-	SearchFavoriteLocation: undefined
+	SearchFavoriteLocation: undefined,
+	PrivacyPolicy: undefined,
 }
 
 export type SettingStackScreenName = keyof SettingStackParamList

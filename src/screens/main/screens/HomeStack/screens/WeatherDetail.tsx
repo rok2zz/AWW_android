@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { FavoriteWeather, Forecasts, Weather } from "../../../../../slices/weather";
 import WeatherIcon from "../../../../../components/WeatherIcon";
 import Svg, { Circle, Path } from "react-native-svg";
-import { background, convertTemperature, formatHour, getAirQuality, getAirQuarityColor, getDate, getDay, getMoonPhase, getSunPhase } from "../../../../../hooks/funcions";
+import { background, convertTemperature, formatHour, getAirQuality, getAirQuarityColor, getDate, getDay, getMoonPhase, getSunPhase, getWeatherText } from "../../../../../hooks/funcions";
 import { UserSetting } from "../../../../../slices/auth";
 import { useSetting } from "../../../../../hooks/useAuth";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -161,11 +161,11 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
             <StatusBar translucent backgroundColor="transparent"/>
 
             <ImageBackground
-                source={ background(weather ? weather.weatherIcon : 1) }
+                source={ background(weather ? weather.weatherIcon : 0) }
                 style={{ width: '100%', height: '100%', paddingTop: insets.top }}
                 resizeMode="cover" 
             >
-                <View style={[ styles.rowContainer, { justifyContent: 'space-between' }]}>
+                <View style={[ styles.rowContainer, type === 'favorite' && { justifyContent: 'space-between' }]}>
                     <Pressable style={{ padding: 20 }} onPress={ () => navigation.goBack() }>
                         <LeftArrow />
                     </Pressable>
@@ -176,12 +176,12 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                             <Text style={[ styles.regularText, { marginRight: 10 }]}>{ weather.locationName ?? '' }</Text>
                             <WeatherIcon index={ weather.weatherIcon } size={ 30 } />
                             <Text style={[ styles.extraBoldText, { fontSize: 20, marginRight: 5 }]}>{ weather.temperature.value.toFixed(0) }°</Text> 
-                            <Text style={[ styles.regularText, { fontSize: 14 }]}>{ weather.dailyForecasts[0].shortPhrase }</Text>
+                            {/* <Text style={[ styles.regularText, { fontSize: 14 }]}>{ getWeatherText(weather.dailyForecasts[0]?.weatherIcon ?? 1)  }</Text> */}
                         </View>
                     }
 
                     { type === 'favorite' &&
-                        <Pressable style={{ marginRight: 20 }} onPress={ () => settingNavigatton.navigate('SettingStack' as any, { screen: 'Favorite' })}>
+                        <Pressable style={{ padding: 20 }} onPress={ () => settingNavigatton.navigate('SettingStack' as any, { screen: 'Favorite' })}>
                             <Hamburger />
                         </Pressable>
                     }
@@ -201,7 +201,7 @@ const WeatherDetail = ({ route }: Props): JSX.Element => {
                                 <Text style={[ styles.extraBoldText ]}>{ convertTemperature(weather.temperature.value, userSetting.type) }°</Text> 
                             </View>
 
-                            <Text style={[ styles.regularText, { marginBottom: 5 }]}>{ weather.dailyForecasts[0].shortPhrase }</Text>
+                            <Text style={[ styles.regularText, { marginBottom: 5 }]}>{ getWeatherText(weather.dailyForecasts[0]?.weatherIcon ?? 1) }</Text>
                             <Text style={[ styles.regularText, { marginBottom: 5 }]}>최저 { convertTemperature(weather.temperature.minimum, userSetting.type)  }° / 최고 { convertTemperature(weather.temperature.maximum, userSetting.type)  }°</Text>        
                         </View>
 

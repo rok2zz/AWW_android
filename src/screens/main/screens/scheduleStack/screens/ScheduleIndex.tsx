@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import TabHeader from "../../../../../components/header/TabHeader";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { ScheduleStackNavigationProp } from "../../../../../types/stack";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Schedule } from "../../../../../slices/schedule";
@@ -14,6 +14,8 @@ import TopTabBar from "../../../../../components/tabBar/TopTabBar";
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add_blue.svg"
 import { UserSetting } from "../../../../../slices/auth";
 import { convertTemperature } from "../../../../../hooks/funcions";
+import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
+import { adUnitId } from "../../../../RootStack";
 
 
 
@@ -26,6 +28,7 @@ const ScheduleIndex = (): JSX.Element => {
     const [tabType, setTabType] = useState<number>(0); // 0: 현재 일정, 1: 종료된 일정
     const currentScheduleList: Schedule[] = useCurrentScheduleList();
     const pastScheduleList: Schedule[] = usePastScheduleList();
+    const bannerRef = useRef<BannerAd>(null);
 
     useEffect(() => {
         if (isFocused) {
@@ -96,31 +99,45 @@ const ScheduleIndex = (): JSX.Element => {
 
                                 if (item.status === 1) {
                                     return (
-                                        <Pressable style={ styles.container } key={ 'schedule' + index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
-                                            <Text style={ styles.boldText }>{ item.title }</Text>
-                                            <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
-                                            { item.location && (
-                                                <View style={ styles.rowContainer }>
-                                                    <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
-                                                    <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
-            
-                                                    { item.temperature !== undefined && (
-                                                        <View style={ styles.rowContainer }>
-                                                            <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ convertTemperature(item.temperature, userSetting.type) }°</Text>
-                                                        </View>
-                                                    )}
+                                        <View key={ 'schedule' + index }>
+                                            <Pressable style={ styles.container } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
+                                                <Text style={ styles.boldText }>{ item.title }</Text>
+                                                <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
+                                                { item.location && (
+                                                    <View style={ styles.rowContainer }>
+                                                        <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                                                        <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+                
+                                                        { item.temperature !== undefined && (
+                                                            <View style={ styles.rowContainer }>
+                                                                <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ convertTemperature(item.temperature, userSetting.type) }°</Text>
+                                                            </View>
+                                                        )}
+                                                    </View>
+                                                )}
+                                            </Pressable>
+                                            { currentScheduleList && index === 2 && currentScheduleList.length >= 4 && 
+                                                <View style={{ marginTop: 20 }}>
+                                                    <BannerAd  ref={bannerRef} unitId={adUnitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
                                                 </View>
-                                            )}
-                                        </Pressable>
+                                            }
+                                        </View>
                                     )
                                 }
                             })}
+
                             { currentScheduleList && currentScheduleList.length === 0 && 
                                 <View style={{ marginTop: 100, alignItems: 'center' }}>
                                     <Text style={[ styles.regularText, { color: 'rgba(0, 0, 0, 0.25)' }]}>등록된 일정이 없습니다.</Text>
                                 </View>
                             }
+                            
                         </ScrollView>
+                        { currentScheduleList && currentScheduleList.length < 4 && 
+                            <View style={{ marginTop: 20 }}>
+                                <BannerAd ref={bannerRef} unitId={adUnitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+                            </View>
+                        }
 
                         <Pressable style={ styles.addBtn } onPress={ () => navigation.navigate('ScheduleCreate') }>
                             <View style={[ styles.rowContainer, { justifyContent: 'center' }]}>
@@ -136,26 +153,38 @@ const ScheduleIndex = (): JSX.Element => {
 
                                 if (item.status === 0) {
                                     return (
-                                        <Pressable style={[ styles.container, { opacity: 0.7 }]} key={ 'endSchedule' + index } onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
-                                            <Text style={ styles.boldText }>{ item.title }</Text>
-                                            <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
-                                            { item.location && (
-                                                <View style={ styles.rowContainer }>
-                                                    <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
-                                                    <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
+                                        <View key={ 'endSchedule' + index }>
+                                            <Pressable style={[ styles.container, { opacity: 0.7 }]} onPress={ () => navigation.navigate('ScheduleDetail', { id: item.id ?? 0 }) }>
+                                                <Text style={ styles.boldText }>{ item.title }</Text>
+                                                <Text style={[ styles.regularText, { marginBottom: 16 }]}>{ getTime(item) }</Text>
+                                                { item.location && (
+                                                    <View style={ styles.rowContainer }>
+                                                        <Location style={{ marginRight: 5 }} width={ 20 } height={ 20 } />
+                                                        <Text style={[ styles.regularText, { fontSize: 20, marginRight: 10 }]}>{ item.location }</Text>
 
-                                                    { item.temperature !== undefined && (
-                                                        <View style={ styles.rowContainer }>
-                                                            <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ convertTemperature(item.temperature, userSetting.type) }°</Text>
-                                                        </View>
-                                                    )}
+                                                        { item.temperature !== undefined && (
+                                                            <View style={ styles.rowContainer }>
+                                                                <Text style={[ styles.boldText, { fontSize: 20, marginBottom: 0 }]}>{ convertTemperature(item.temperature, userSetting.type) }°</Text>
+                                                            </View>
+                                                        )}
+                                                    </View>
+                                                )}
+                                            </Pressable>
+                                            { pastScheduleList && index === 2 && pastScheduleList.length >= 4 && 
+                                                <View style={{ marginTop: 20 }}>
+                                                    <BannerAd  ref={bannerRef} unitId={adUnitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
                                                 </View>
-                                            )}
-                                        </Pressable>
+                                            }
+                                        </View>
                                     )
                                 }
                             })}
                         </View>
+                        { pastScheduleList && pastScheduleList.length < 4 && 
+                            <View style={{ width: '100%', marginTop: 20,  alignItems: 'center'  }}>
+                                <BannerAd  ref={bannerRef} unitId={adUnitId} size={BannerAdSize.INLINE_ADAPTIVE_BANNER} />
+                            </View>
+                        }
                     </ScrollView>
                 )}
             </View>
@@ -169,12 +198,13 @@ const ScheduleIndex = (): JSX.Element => {
 const styles = StyleSheet.create({
     wrapper: {
         flex: 1,
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+
+        marginHorizontal: 20
     },
     container: {
         padding: 20,
         marginTop: 20,
-        marginHorizontal: 20,
 
         borderRadius: 10,
         backgroundColor: '#ffffff'
@@ -207,7 +237,6 @@ const styles = StyleSheet.create({
         padding: 20,
 		marginTop: 20,
         marginBottom: 130,
-        marginHorizontal: 20,
 
 		borderRadius: 10,
 		backgroundColor: '#ffffff',

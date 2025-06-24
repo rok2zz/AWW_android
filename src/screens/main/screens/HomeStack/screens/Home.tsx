@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ImageBackground, PermissionsAndroid, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Swiper from 'react-native-swiper';
@@ -10,7 +10,7 @@ import { FavoriteWeather, Forecasts, Weather } from '../../../../../slices/weath
 import { Schedule } from '../../../../../slices/schedule';
 import { Payload } from '../../../../../types/api';
 import { useCurrentWeather, useFavoriteLocationWeather, useWeather } from '../../../../../hooks/useWeather';
-import { background, convertTemperature, formatHour, getAirQuality, getAirQuarityColor, openAppSettings } from '../../../../../hooks/funcions';
+import { background, convertTemperature, formatHour, getAirQuality, getAirQuarityColor, getWeatherText, openAppSettings } from '../../../../../hooks/funcions';
 import Geolocation from '@react-native-community/geolocation';
 import { UserSetting } from '../../../../../slices/auth';
 
@@ -23,9 +23,9 @@ import Plus from "../../../../../assets/imgs/schedule/icon_plus.svg"
 import ScheduleAdd from "../../../../../assets/imgs/schedule/icon_schedule_add.svg"
 import WeatherIcon from '../../../../../components/WeatherIcon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { adUnitId } from '../../../../RootStack';
 // import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
-
-
 
 const Home = (): React.JSX.Element => {
 	const navigation = useNavigation<HomeStackNavigationProp>();
@@ -38,6 +38,7 @@ const Home = (): React.JSX.Element => {
 	const androidId: string = useAndroidId();
 	const isFocused: boolean = useIsFocused();
 	const insets = useSafeAreaInsets();
+	const bannerRef = useRef<BannerAd>(null);
 
 	const [location, setLocation] = useState<PlaceLocation>({ lat: 0, lon: 0 })
 	const [favoriteLocation, setFavoriteLocation] = useState<FavoriteLocation[]>([{ key: '1', lattitude: 1, longitude: 1 },{ key: '1', lattitude: 1, longitude: 1 }])
@@ -45,6 +46,9 @@ const Home = (): React.JSX.Element => {
 	const currentWeather =  useCurrentWeather();
 	const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
 
+
+
+	
 	useEffect(() => {
 		getGeolocation();
 
@@ -138,7 +142,6 @@ const Home = (): React.JSX.Element => {
 		}
 	}
 	
-
 	return (
 		<View style={ styles.wrapper }>
             <StatusBar translucent backgroundColor="transparent"/>
@@ -220,7 +223,7 @@ const Home = (): React.JSX.Element => {
 										<Text style={ styles.boldText }>{  convertTemperature(currentWeather.temperature.value, userSetting.type) }°</Text>
 									</View>
 									<View style={{ width: '50%' }}>
-										<Text style={ styles.regularText }>{ currentWeather.dailyForecasts[0]?.shortPhrase ?? '' }</Text>
+										<Text style={ styles.regularText }>{ getWeatherText(currentWeather.dailyForecasts[0]?.weatherIcon ?? 1) }</Text>
 										<Text style={ styles.regularText }>최저 { convertTemperature(currentWeather.temperature.minimum, userSetting.type) }° / 최고 { convertTemperature(currentWeather.temperature.maximum, userSetting.type) }°</Text>	
 									</View>
 								</View>
@@ -252,11 +255,15 @@ const Home = (): React.JSX.Element => {
 					</View> */}
 					{/* <BannerAd
 						unitId={'ca-app-pub-5256945920507647~5970488269'}
-						size={BannerAdSize.FULL_BANNER}
+						size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
 						requestOptions={{
-						requestNonPersonalizedAdsOnly: true,
+							requestNonPersonalizedAdsOnly: true,
 						}}
 					/> */}
+
+					<View style={{ marginTop: 20 }}>
+						<BannerAd  ref={bannerRef} unitId={adUnitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+					</View>
 
 					{/* schedule */}
 					{ scheduleList && scheduleList.length > 0 ? (

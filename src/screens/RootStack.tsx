@@ -6,13 +6,12 @@ import DeviceInfo from "react-native-device-info"
 import { useAuthActions } from "../hooks/useAuth"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { UserSetting } from "../slices/auth"
-import { Payload } from "../types/api"
-import { PlaceLocation } from "../slices/location"
-import { useLocationActions } from "../hooks/useLocation"
+import { TestIds } from "react-native-google-mobile-ads"
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 export const version = '0.0.1'
+export const adUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyyyyyy';
 
 const RootStack = (): JSX.Element => {
 	const { saveAndroidId, saveSetting } = useAuthActions();

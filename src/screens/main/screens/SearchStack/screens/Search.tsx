@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import TopTabBar from '../../../../../components/tabBar/TopTabBar';
 import { RouteProp, useNavigation } from '@react-navigation/native';
 import { SearchStackNavigationProp, SearchStackParamList } from '../../../../../types/stack';
@@ -12,6 +12,9 @@ import Delete from '../../../../../assets/imgs/common/icon_search_delete.svg';
 import SearchIcon from '../../../../../assets/imgs/common/icon_search.svg';
 import MiniSearchIcon from '../../../../../assets/imgs/common/icon_search_mini.svg';
 import { useLocation } from '../../../../../hooks/useLocation';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+import { adUnitId } from '../../../../RootStack';
 
 interface Props {
 	route: RouteProp<SearchStackParamList, 'Search'>
@@ -25,6 +28,8 @@ const Search = ({ route }: Props): React.JSX.Element => {
 	const [searchText, setSearchText] = useState<string>('');
 	const [isSearched, setIsSearched] = useState<boolean>(false);
 	const [locationList, setLocationList] = useState<PlaceLocation[]>([]);
+	const insets = useSafeAreaInsets();
+	const bannerRef = useRef<BannerAd>(null);
 	
 	// const handleTypeChange = (type: number): void => {
 	// 	setTabType(type);
@@ -49,7 +54,8 @@ const Search = ({ route }: Props): React.JSX.Element => {
 
 	return (
 		<View style={ styles.wrapper }>
-			<View style={ styles.searchContainer }>
+			
+			<View style={[ styles.searchContainer, { paddingTop: insets.top }]}>
 				<View style={[ styles.rowContainer, { flex: 1 }]}>
 					<Pressable onPress={ () => navigation.goBack() }>
 						<LeftArrow style={{ marginRight: 10 }} />
@@ -75,6 +81,10 @@ const Search = ({ route }: Props): React.JSX.Element => {
 
 			{/* { tabType === 0 ? ( */}
 			<ScrollView showsVerticalScrollIndicator={ false } style={ styles.container }>
+				<View style={{ marginBottom: 10 }}>
+					<BannerAd  ref={bannerRef} unitId={adUnitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+				</View>
+				
 				{ locationList && locationList.length > 0 ? (
 					<Pressable>
 						{ locationList.map((item: PlaceLocation, index: number) => (

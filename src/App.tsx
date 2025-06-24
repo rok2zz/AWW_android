@@ -23,21 +23,34 @@ function App(): React.JSX.Element {
 	// useEffect(() => {
 	// 	// 광고 설정 먼저 구성
 	// 	mobileAds()
-	// 	  .setRequestConfiguration({
+	// 		.setRequestConfiguration({
 	// 		maxAdContentRating: MaxAdContentRating.PG,
 	// 		tagForChildDirectedTreatment: true,
 	// 		tagForUnderAgeOfConsent: true,
 	// 		testDeviceIdentifiers: ['EMULATOR'], // 기기 테스트 ID
-	// 	  })
-	// 	  .then(() => {
+	// 	})
+	// 	.then(() => {
 	// 		// 설정 완료 후 SDK 초기화
 	// 		return mobileAds().initialize();
-	// 	  })
-	// 	  .then(adapterStatuses => {
+	// 	})
+	// 	.then(adapterStatuses => {
 	// 		console.log('✅ Google Mobile Ads SDK 초기화 완료', adapterStatuses);
-	// 	  });
-	//   }, []);
+	// });
+	// }, []);
+
+	// const permissionTracking = async () => {
+	// 	const result = await check(PERMISSIONS.IOS.APP_TRACKING_TRANSPARENCY);
+	// 	if (result === RESULTS.DENIED) {
+	// 	// The permission has not been requested, so request it.
+	// 	await request(PERMISSIONS.IOS.APP_TRACKING_TRANSPARENCY);
+	// 	}
+
+	// 	const adapterStatuses = await mobileAds().initialize();
 	
+	// }
+
+
+
 
 	return (
 		<Provider store={ store }>

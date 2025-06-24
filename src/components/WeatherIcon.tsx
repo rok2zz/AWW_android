@@ -91,7 +91,7 @@ const WeatherIcon = ({ index, size }: { index: number, size: number }): JSX.Elem
 
     return (
         <View>
-        <IconComponent style={styles.icon} width={size} height={size} />
+            <IconComponent style={styles.icon} width={size} height={size} />
         </View>
     );
 }

@@ -369,26 +369,26 @@ const FavoriteWeatherDetail =(): JSX.Element => {
         <View style={ styles.wrapper }>
             <StatusBar translucent backgroundColor="transparent"/>
 
-            { weather && weather.length > 0 &&
-                <FlatList
-                    ref={flatListRef}
-                    data={weather}
-                    horizontal
-                    pagingEnabled
-                    keyExtractor={(item, index) => `weather-${index}`}
-                    initialScrollIndex={initialIndex}
-                    showsHorizontalScrollIndicator={false}
-                    renderItem={({ item, index }) => (
-                        <RenderItem item={ item } index={ index } />
-                    )}
-                    getItemLayout={(data, index) => ({
-                        length: screenWidth,
-                        offset: screenWidth * index,
-                        index,
-                    })}
-                    removeClippedSubviews={false} 
-                />
-            }
+            {/* { weather && weather.length > 0 &&
+                // <FlatList
+                //     ref={flatListRef}
+                //     data={weather}
+                //     horizontal
+                //     pagingEnabled
+                //     keyExtractor={(item, index) => `weather-${index}`}
+                //     initialScrollIndex={initialIndex}
+                //     showsHorizontalScrollIndicator={false}
+                //     renderItem={({ item, index }) => (
+                //         <RenderItem item={ item } index={ index } />
+                //     )}
+                //     getItemLayout={(data, index) => ({
+                //         length: screenWidth,
+                //         offset: screenWidth * index,
+                //         index,
+                //     })}
+                //     removeClippedSubviews={false} 
+                // />
+            } */}
         </View>
     )
 }

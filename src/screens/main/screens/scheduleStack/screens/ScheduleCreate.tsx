@@ -23,6 +23,8 @@ import TodoModify from "../../../../../assets/imgs/schedule/icon_todo_modify.svg
 import { UserSetting } from "../../../../../slices/auth";
 import { useSetting } from "../../../../../hooks/useAuth";
 import { convertTemperature, getNextTime, getPickedDate, getPickedTime, getTime } from "../../../../../hooks/funcions";
+// import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
+// import { adUnitId } from "../../../../RootStack";
 
 interface ToggleProps {
     value: boolean,
@@ -519,8 +521,11 @@ const ScheduleCreate = (): JSX.Element => {
                     ) : (
                         <View style={{ marginBottom: 20 }}></View>
                     )}
-                
                 </View>
+{/* 
+                <View style={ styles.bannerContainer }>
+                    <BannerAd  ref={bannerRef} unitId={adUnitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+                </View> */}
             </ScrollView>
         </View>
     );
@@ -561,7 +566,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
 
-        paddingHorizontal: 20,
+        marginHorizontal: 20,
 
         backgroundColor: '#f5f5f5'
     },
@@ -599,7 +604,6 @@ const styles = StyleSheet.create({
     blockContainer: {
         marginTop: 20,
         padding: 20,
-        marginBottom: 150,
 
         borderRadius: 10,
         backgroundColor: '#ffffff'
@@ -673,6 +677,10 @@ const styles = StyleSheet.create({
 
         borderRadius: 10,
         backgroundColor: '#f5f5f5'
+    },
+    bannerContainer: {
+        marginTop: 20,
+        marginBottom: 150
     }
 })
 export default ScheduleCreate;

@@ -45,7 +45,7 @@ export const useLastUpdateWeather = (): string => {
 }
 
 export const useWeather = (): JsonsHook => {
-    const url = 'http://175.126.73.103:5000'
+    const url = 'http://mou-in.com:5000'
 
     const language: string = 'ko-kr'
     const { saveCurrentWeather, saveFavoriteLocationWeather,saveFavoriteLocationWeatherDetail, addFavorite } = useWeatherActions()

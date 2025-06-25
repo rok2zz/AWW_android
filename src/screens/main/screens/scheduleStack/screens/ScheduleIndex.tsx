@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import TabHeader from "../../../../../components/header/TabHeader";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { ScheduleStackNavigationProp } from "../../../../../types/stack";
@@ -29,7 +29,8 @@ const ScheduleIndex = (): JSX.Element => {
     const currentScheduleList: Schedule[] = useCurrentScheduleList();
     const pastScheduleList: Schedule[] = usePastScheduleList();
     const bannerRef = useRef<BannerAd>(null);
-
+    const { width } = useWindowDimensions();
+    
     useEffect(() => {
         if (isFocused) {
             getSchedule();

@@ -70,10 +70,10 @@ const Setting = (): JSX.Element => {
                         <Arrow />
                     </Pressable> 
 
-                    <View style={ styles.itemContainer }>
+                    <Pressable style={ styles.itemContainer } onPress={ () => navigation.navigate('PrivacyPolicy') }>
                         <Text style={ styles.regularText }>개인정보처리방침</Text>
                         <Arrow />
-                    </View> 
+                    </Pressable> 
 
                     <View style={[ styles.itemContainer, { borderBottomWidth: 0 }]}>
                         <Text style={ styles.regularText }>버전 정보</Text>
